@@ -1,0 +1,14 @@
+{% extends 'books/base.html' %}
+{% block content %}
+<h2>Notifications</h2>
+<ul class="list-group">
+    {% for n in notifications %}
+        <li class="list-group-item{% if not n.is_read %} list-group-item-info{% endif %}">
+            <a href="{{ n.url }}">{{ n.message }}</a>
+            <span class="text-muted float-end" style="font-size:0.9em;">{{ n.created_at|date:"Y-m-d H:i" }}</span>
+        </li>
+    {% empty %}
+        <li class="list-group-item">No notifications.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

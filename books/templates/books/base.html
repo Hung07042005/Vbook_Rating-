@@ -61,6 +61,12 @@
                 <div>
                     {% if user.is_authenticated %}
                         <span class="navbar-text me-2">Hello, {{ user.username }}!</span>
+                        <a href="{% url 'notifications' %}" class="btn btn-outline-info btn-sm ms-2">
+                            <i class="fas fa-bell"></i> Notifications
+                            {% if unread_count and unread_count > 0 %}
+                                <span class="badge bg-danger">{{ unread_count }}</span>
+                            {% endif %}
+                        </a>
                         <form method="post" action="{% url 'logout' %}" style="display: inline;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-primary">Logout</button>
@@ -101,13 +107,21 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 Vbook Rating. All rights reserved.</p>
+                <p>
+                    <a href="https://github.com/Hung07042005/Vbook_Rating-.git" target="_blank" style="color:inherit; text-decoration:none;">
+                        &copy; 2025 Vbook Rating. All rights reserved.
+                    </a>
+                </p>
             </div>
         </div>
     </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block script %}
+    {% endblock %}
+    
     <script>
       // Dropdown toggle logic
       document.addEventListener('DOMContentLoaded', function() {

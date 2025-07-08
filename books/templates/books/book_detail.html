@@ -38,7 +38,9 @@
                                     {% endif %}
                                 {% endwith %}
                             </div>
-                            <p class="rating">Average Rating: {{ book.rating }}/5 <i class="fas fa-star text-warning"></i></p>
+                            <p class="rating">Average Rating: {{ book.rating }}/5 <i class="fas fa-star text-warning"></i>
+                            <span class="badge bg-secondary ms-2">{{ book.reviews.count }} reviews</span>
+                            </p>
                             
                             <!-- Want to Read Button -->
                             {% if user.is_authenticated %}
@@ -70,10 +72,42 @@
                             <!-- Hiển thị đánh giá -->
                             <h4>Reviews</h4>
                             {% for review in book.reviews.all %}
-                                <div class="card mb-2">
+                                <div class="card mb-2" id="review-{{ review.id }}">
                                     <div class="card-body">
                                         <p>{{ review.comment }}</p>
-                                        <p class="rating">Rating: {{ review.rating }}/5 <i class="fas fa-star"></i> by {{ review.user.username|default:'Anonymous' }}</p>
+                                        <p class="rating">
+                                            Rating: {{ review.rating }}/5 <i class="fas fa-star"></i> 
+                                            by {{ review.user.username|default:'Anonymous' }}
+                                        </p>
+                                        <div class="d-flex align-items-center gap-2 mt-2">
+                                            <button type="button" class="btn btn-sm btn-outline-success btn-like" data-review-id="{{ review.id }}">
+                                                <i class="fas fa-thumbs-up"></i> Like
+                                                <span id="like-count-{{ review.id }}" class="ms-1">{{ review.like_count }}</span>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary btn-reply" data-review-id="{{ review.id }}">
+                                                <i class="fas fa-reply"></i> comment
+                                            </button>
+                                        </div>
+                                        {% if review.replies.all %}
+                                            <div class="ms-4 mt-2" id="replies-{{ review.id }}">
+                                                {% for reply in review.replies.all %}
+                                                    <div class="border rounded p-2 mb-1 bg-light" id="reply-{{ reply.id }}">
+                                                        <strong>{{ reply.user.username|default:'Anonymous' }}</strong>: {{ reply.content }}
+                                                        <span class="text-muted" style="font-size:0.85em;">({{ reply.created_at|date:"Y-m-d H:i" }})</span>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="ms-4 mt-2" id="replies-{{ review.id }}"></div>
+                                        {% endif %}
+                                        <form id="reply-form-{{ review.id }}" class="mt-2 d-none" method="post" action="{% url 'reply_review' review.id %}">
+                                            {% csrf_token %}
+                                            <div class="mb-2">
+                                                <textarea class="form-control" name="reply" placeholder="Write a comment..." required></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-primary">Post</button>
+                                            <button type="button" class="btn btn-sm btn-secondary btn-cancel-reply" data-review-id="{{ review.id }}">Cancel</button>
+                                        </form>
                                     </div>
                                 </div>
                             {% empty %}
@@ -88,7 +122,7 @@
                                     <textarea class="form-control" name="comment" placeholder="Your review" required></textarea>
                                 </div>
                                 <div class="mb-3">
-                                    <input type="number" class="form-control" name="rating" min="0" max="5" step="0.1" placeholder="Rating (0-5)" required>
+                                    <input type="number" class="form-control" name="rating" min="0" max="5" step="1" placeholder="Rating (0-5)" required>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Submit Review</button>
                             </form>
@@ -134,6 +168,7 @@
     position: relative;
     display: -webkit-box;
     -webkit-line-clamp: 5;
+    line-clamp: 5;
     -webkit-box-orient: vertical;
     white-space: pre-line;
     transition: max-height 0.3s;
@@ -144,15 +179,20 @@
     overflow: visible !important;
     display: block !important;
 }
+.bg-warning {
+    transition: background 0.5s;
+}
 </style>
+{% block script %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+    // Toggle nội dung sách
     const shortContent = document.getElementById('bookContentShort');
     const fullContent = document.getElementById('bookContentFull');
     const toggleBtn = document.getElementById('toggleContentBtn');
     let expanded = false;
     if (shortContent && fullContent && toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
+        toggleBtn.addEventListener('click', function () {
             expanded = !expanded;
             if (expanded) {
                 shortContent.classList.add('d-none');
@@ -165,5 +205,108 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Reply button
+    document.querySelectorAll('.btn-reply').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const id = this.getAttribute('data-review-id');
+            document.getElementById('reply-form-' + id).classList.remove('d-none');
+        });
+    });
+
+    // Cancel reply button
+    document.querySelectorAll('.btn-cancel-reply').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const id = this.getAttribute('data-review-id');
+            document.getElementById('reply-form-' + id).classList.add('d-none');
+        });
+    });
+
+    // Like review
+    document.querySelectorAll('.btn-like').forEach(function (button) {
+    button.addEventListener('click', function () {
+        const reviewId = this.getAttribute('data-review-id');
+
+        fetch(`/review/${reviewId}/like/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Cập nhật số lượt thích
+            const countSpan = document.getElementById('like-count-' + reviewId);
+            countSpan.textContent = data.like_count;
+
+            // Toggle giao diện nút like
+            if (data.liked) {
+                button.classList.remove('btn-outline-success');
+                button.classList.add('btn-success');
+                button.innerHTML = `<i class="fas fa-thumbs-up"></i> Liked <span id="like-count-${reviewId}" class="ms-1">${data.like_count}</span>`;
+            } else {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-success');
+                button.innerHTML = `<i class="fas fa-thumbs-up"></i> Like <span id="like-count-${reviewId}" class="ms-1">${data.like_count}</span>`;
+            }
+        });
+    });
+});
+
+    // CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    window.csrftoken = getCookie('csrftoken');
+
+    // Xử lý submit reply bằng AJAX
+    document.querySelectorAll('form[id^="reply-form-"]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const reviewId = this.getAttribute('id').replace('reply-form-', '');
+            const formData = new FormData(this);
+
+            fetch(`/review/${reviewId}/reply/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': window.csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Thêm reply mới vào danh sách reply
+                    const repliesDiv = document.getElementById('replies-' + reviewId);
+                    const replyHtml = `
+                        <div class="border rounded p-2 mb-1 bg-light" id="reply-${data.reply.id}">
+                            <strong>${data.reply.user}</strong>: ${data.reply.content}
+                            <span class="text-muted" style="font-size:0.85em;">(${data.reply.created_at})</span>
+                        </div>
+                    `;
+                    repliesDiv.insertAdjacentHTML('beforeend', replyHtml);
+                    // Ẩn form và reset
+                    form.classList.add('d-none');
+                    form.reset();
+                } else {
+                    alert(data.error || 'Reply failed!');
+                }
+            });
+        });
+    });
 });
 </script>
+{% endblock %}

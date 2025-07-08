@@ -50,12 +50,14 @@ class Review(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     comment = models.TextField()
-    rating = models.FloatField(default=0.0)  # Đánh giá cá nhân từ 0 đến 5
+    rating = models.FloatField(default=0)  # Đánh giá cá nhân từ 0 đến 5
     created_at = models.DateTimeField(auto_now_add=True)
+    like_count = models.PositiveIntegerField(default=0)      # Thêm trường like
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.book.update_rating()
+        if hasattr(self.book, "update_rating"):
+            self.book.update_rating()
 
     def __str__(self):
         return f"Review by {self.user.username if self.user else 'Anonymous'} for {self.book.title}"
@@ -70,3 +72,34 @@ class WantToRead(models.Model):
 
     def __str__(self):
         return f"{self.user.username} wants to read {self.book.title}"
+
+class Reply(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='replies')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reply by {self.user.username if self.user else 'Anonymous'}"
+    
+class ReviewLike(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ['review', 'user']  # Mỗi user chỉ like 1 review 1 lần
+
+    def __str__(self):
+        user_str = self.user.username if hasattr(self.user, "username") else str(self.user)
+        review_id = self.review.id if hasattr(self.review, "id") else str(self.review)
+        return f"{user_str} liked review {review_id}"
+
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=255)
+    url = models.CharField(max_length=255, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message}"

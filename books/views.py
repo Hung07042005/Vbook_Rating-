@@ -5,8 +5,14 @@ from django.db.models import Q, Count, Avg
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from datetime import datetime, timedelta
+from django.views.decorators.http import require_POST
+from .models import Review, ReviewLike
+import json
+from .models import Review, Reply
+from django.contrib.auth.models import User
+from .models import Notification
 
 def index(request):
     books = Book.objects.all().order_by('-created_at')
@@ -258,3 +264,72 @@ def remove_from_want_to_read(request, book_id):
 def my_books(request):
     want_to_read_books = WantToRead.objects.filter(user=request.user).select_related('book', 'book__author').order_by('-added_at')
     return render(request, 'books/my_books.html', {'want_to_read_books': want_to_read_books})
+
+@login_required
+@require_POST
+def like_review(request, review_id):
+    review = get_object_or_404(Review, pk=review_id)
+    user = request.user
+
+    # Toggle like
+    from books.models import ReviewLike  # Ensure import at the top if not already
+
+    like = ReviewLike.objects.filter(review=review, user=user).first()
+    if like:
+        like.delete()
+        liked = False
+    else:
+        ReviewLike.objects.create(review=review, user=user)
+        liked = True
+        liked = True
+
+    # Cập nhật lại số like cho review
+    review.like_count = review.likes.count()
+    review.save(update_fields=['like_count'])
+
+    # Trả về JSON nếu là AJAX
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'like_count': review.like_count,
+            'liked': liked
+        })
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required
+@require_POST
+def reply_review(request, review_id):
+    review = get_object_or_404(Review, pk=review_id)
+    reply_text = request.POST.get('reply')
+    if not reply_text:
+        return JsonResponse({'success': False, 'error': 'Reply cannot be empty.'}, status=400)
+    reply = Reply.objects.create(
+        review=review,
+        user=request.user,
+        content=reply_text
+    )
+    # Tạo notification cho chủ review (nếu không phải tự trả lời mình)
+    if review.user != request.user:
+        Notification.objects.create(
+            user=review.user,
+            message=f"{request.user.username} đã bình luận vào đánh giá của bạn.",
+            url=f"/book/{review.book.id}/#review-{review.id}"
+        )
+    # Trả về JSON nếu là AJAX
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'reply': {
+                'id': reply.id,
+                'user': reply.user.username if reply.user else 'Anonymous',
+                'content': reply.content,
+                'created_at': reply.created_at.strftime('%Y-%m-%d %H:%M')
+            }
+        })
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required
+def notifications(request):
+    notifications = request.user.notifications.order_by('-created_at')
+    notifications.update(is_read=True)  # Đánh dấu đã đọc khi vào trang
+    return render(request, 'books/notifications.html', {'notifications': notifications})
