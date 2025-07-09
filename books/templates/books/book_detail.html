@@ -102,8 +102,9 @@
                                         {% endif %}
                                         <form id="reply-form-{{ review.id }}" class="mt-2 d-none" method="post" action="{% url 'reply_review' review.id %}">
                                             {% csrf_token %}
-                                            <div class="mb-2">
-                                                <textarea class="form-control" name="reply" placeholder="Write a comment..." required></textarea>
+                                            <div class="form-floating mb-2">
+                                                <textarea class="form-control" id="reply-{{ review.id }}" name="reply" required placeholder=" " style="height: 100px"></textarea>
+                                                <label for="reply-{{ review.id }}">Write a comment...</label>
                                             </div>
                                             <button type="submit" class="btn btn-sm btn-primary">Post</button>
                                             <button type="button" class="btn btn-sm btn-secondary btn-cancel-reply" data-review-id="{{ review.id }}">Cancel</button>
@@ -118,11 +119,17 @@
                             <h4>Add a Review</h4>
                             <form method="post" action="{% url 'book_detail' book.id %}">
                                 {% csrf_token %}
-                                <div class="mb-3">
-                                    <textarea class="form-control" name="comment" placeholder="Your review" required></textarea>
+                                <div class="form-floating mb-3">
+                                    <textarea class="form-control" id="review" name="comment" placeholder="Your review" style="height: 200px"></textarea>
+                                    <label for="review">Enter Your review</label>
                                 </div>
-                                <div class="mb-3">
-                                    <input type="number" class="form-control" name="rating" min="0" max="5" step="1" placeholder="Rating (0-5)" required>
+                                <div class="mb-3 star-rating">
+                                    <input type="hidden" name="rating" id="rating-value" value="0">
+                                    <span class="star" data-value="1">&#9733;</span>
+                                    <span class="star" data-value="2">&#9733;</span>
+                                    <span class="star" data-value="3">&#9733;</span>
+                                    <span class="star" data-value="4">&#9733;</span>
+                                    <span class="star" data-value="5">&#9733;</span>
                                 </div>
                                 <button type="submit" class="btn btn-primary">Submit Review</button>
                             </form>
@@ -181,6 +188,42 @@
 }
 .bg-warning {
     transition: background 0.5s;
+}
+.floating-label-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+.floating-label-group textarea:focus + label,
+.floating-label-group textarea:not(:placeholder-shown) + label {
+    top: -1.2em;
+    left: 0.5em;
+    font-size: 0.85em;
+    color: #495057;
+    background: #fff;
+    padding: 0 0.25em;
+}
+.floating-label-group label {
+    position: absolute;
+    top: 0.75em;
+    left: 0.75em;
+    color: #aaa;
+    pointer-events: none;
+    transition: 0.2s;
+    background: transparent;
+}
+.floating-label-group textarea {
+    padding-top: 1.5em;
+}
+.star-rating .star {
+    font-size: 48px !important;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.star-rating .star.selected,
+.star-rating .star:hover,
+.star-rating .star:hover ~ .star {
+    color: #f5b301;
 }
 </style>
 {% block script %}
@@ -305,6 +348,35 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert(data.error || 'Reply failed!');
                 }
             });
+        });
+    });
+
+    // Star rating logic
+    const stars = document.querySelectorAll('.star-rating .star');
+    const ratingValue = document.getElementById('rating-value');
+    stars.forEach((star, idx) => {
+        star.addEventListener('mouseenter', function() {
+            stars.forEach((s, i) => {
+                s.style.color = i <= idx ? '#f5b301' : '#ccc';
+            });
+        });
+        star.addEventListener('mouseleave', function() {
+            stars.forEach((s, i) => {
+                s.style.color = i < ratingValue.value ? '#f5b301' : '#ccc';
+            });
+        });
+        star.addEventListener('click', function() {
+            ratingValue.value = idx + 1;
+            stars.forEach((s, i) => {
+                s.classList.toggle('selected', i <= idx);
+                s.style.color = i <= idx ? '#f5b301' : '#ccc';
+            });
+        });
+    });
+    // Đặt lại màu khi load lại form
+    document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+        stars.forEach((s, i) => {
+            s.style.color = i < ratingValue.value ? '#f5b301' : '#ccc';
         });
     });
 });
