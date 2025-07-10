@@ -13,6 +13,7 @@ import json
 from .models import Review, Reply
 from django.contrib.auth.models import User
 from .models import Notification
+from datetime import datetime
 
 def index(request):
     books = Book.objects.all().order_by('-created_at')
@@ -98,12 +99,29 @@ def edit_book(request, book_id):
             book.rating = float(request.POST.get('rating', 0.0))
         except ValueError:
             book.rating = 0.0
+
+        # Thêm xử lý giá sách
+        try:
+            book.price = float(request.POST.get('price', 0.0))
+        except ValueError:
+            book.price = 0.0
+
+        # Thêm xử lý ngày xuất bản
+        published_date_str = request.POST.get('published_date')
+        if published_date_str:
+            try:
+                book.published_date = datetime.strptime(published_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                book.published_date = None
+
+        # Xử lý ảnh
         if request.FILES.get('image'):
             book.image = request.FILES['image']
+
         book.save()
         return redirect('book_detail', book_id=book.id)
+    
     return render(request, 'books/book_detail.html', {'book': book, 'edit_mode': True})
-
 def author_detail(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     books = author.books.all()
@@ -333,3 +351,22 @@ def notifications(request):
     notifications = request.user.notifications.order_by('-created_at')
     notifications.update(is_read=True)  # Đánh dấu đã đọc khi vào trang
     return render(request, 'books/notifications.html', {'notifications': notifications})
+@login_required
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, pk=review_id)
+    if review.user != request.user:
+     return HttpResponseForbidden("Bạn không có quyền xóa bình luận này.")
+    book_id = review.book.id
+    review.delete()
+    return redirect('book_detail', book_id=book_id)
+@login_required
+@require_POST
+def delete_reply(request, reply_id):
+    reply = get_object_or_404(Reply, pk=reply_id)
+    if reply.user != request.user:
+        return HttpResponseForbidden("Bạn không có quyền xóa phản hồi này.")
+    
+    review_id = reply.review.id
+    reply.delete()
+    
+    return redirect('book_detail', book_id=reply.review.book.id)

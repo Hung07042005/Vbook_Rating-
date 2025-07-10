@@ -1,397 +1,578 @@
-{% extends 'books/base.html' %}
+{% extends 'books/base.html' %} {% block title %}{{ book.title }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card mb-4">
+    <div class="row g-0">
+      <div class="col-md-4">
+        {% if book.image and book.image.url %}
+        <img
+          src="{{ book.image.url }}"
+          class="card-img-top img-fluid"
+          alt="{{ book.title }}"
+        />
+        {% else %}
+        <img
+          src="https://via.placeholder.com/200x300.png?text=No+Image"
+          class="card-img-top img-fluid"
+          alt="No Image"
+        />
+        {% endif %}
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h1 class="card-title">{{ book.title }}</h1>
+          <h5 class="card-subtitle mb-2 text-muted">
+            by
+            <a href="{% url 'author_detail' book.author.id %}"
+              >{{ book.author.name }}</a
+            >
+          </h5>
 
-    {% block title %}{{ book.title }}{% endblock %}
+          {% if book.published_date %}
+          <p>
+            <strong>Ngày xuất bản:</strong>
+             {{book.published_date|date:"d/m/Y"}}
+          </p>
+          {% endif %} {% if book.price %}
+          <p><strong>Giá sách:</strong> {{ book.price }} VNĐ</p>
+          {% endif %} {% if book.genre %}
+          <p class="mb-2">
+            <span class="badge bg-{{ book.genre.color }}">
+              <i class="{{ book.genre.icon }}"></i>
+              <a
+                href="{% url 'genre_detail' book.genre.id %}"
+                class="text-white text-decoration-none"
+                >{{ book.genre.name }}</a
+              >
+            </span>
+          </p>
+          {% endif %}
 
-    {% block content %}
-        <div class="container mt-4">
-            <div class="card mb-4">
-                <div class="row g-0">
-                    <div class="col-md-4">
-                        {% if book.image and book.image.url %}
-                            <img src="{{ book.image.url }}" class="card-img-top img-fluid" alt="{{ book.title }}">
-                        {% else %}
-                            <img src="https://via.placeholder.com/200x300.png?text=No+Image" class="card-img-top img-fluid" alt="No Image">
-                        {% endif %}
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <h1 class="card-title">{{ book.title }}</h1>
-                            <h5 class="card-subtitle mb-2 text-muted">by <a href="{% url 'author_detail' book.author.id %}">{{ book.author.name }}</a></h5>
-                            {% if book.genre %}
-                                <p class="mb-2">
-                                    <span class="badge bg-{{ book.genre.color }}">
-                                        <i class="{{ book.genre.icon }}"></i> 
-                                        <a href="{% url 'genre_detail' book.genre.id %}" class="text-white text-decoration-none">
-                                            {{ book.genre.name }}
-                                        </a>
-                                    </span>
-                                </p>
-                            {% endif %}
-                            <div id="book-content-wrapper">
-                                {% with book.content|striptags|wordcount as word_count %}
-                                    {% if word_count > 200 %}
-                                        <p class="card-text book-content-short" id="bookContentShort">{{ book.content|truncatewords:200|linebreaksbr }}</p>
-                                        <p class="card-text book-content-full d-none" id="bookContentFull">{{ book.content|linebreaksbr }}</p>
-                                        <button class="btn btn-link p-0 mt-1" id="toggleContentBtn" style="font-size:0.95rem;">Xem thêm</button>
-                                    {% else %}
-                                        <p class="card-text">{{ book.content|linebreaksbr }}</p>
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
-                            <p class="rating">Average Rating: {{ book.rating }}/5 <i class="fas fa-star text-warning"></i>
-                            <span class="badge bg-secondary ms-2">{{ book.reviews.count }} reviews</span>
-                            </p>
-                            
-                            <!-- Want to Read Button -->
-                            {% if user.is_authenticated %}
-                                <div class="mb-3">
-                                    {% if book.is_in_want_to_read %}
-                                        <form method="post" action="{% url 'remove_from_want_to_read' book.id %}" class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-outline-danger">
-                                                <i class="fas fa-heart"></i> Remove from Want to Read
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <form method="post" action="{% url 'add_to_want_to_read' book.id %}" class="d-inline">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-outline-primary">
-                                                <i class="far fa-heart"></i> Want to Read
-                                            </button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                            {% else %}
-                                <div class="mb-3">
-                                    <a href="{% url 'login' %}" class="btn btn-outline-primary">
-                                        <i class="far fa-heart"></i> Want to Read (Login Required)
-                                    </a>
-                                </div>
-                            {% endif %}
+          <div id="book-content-wrapper">
+            {% with book.content|striptags|wordcount as word_count %}
+             {% if word_count > 200 %}
+            <p class="card-text book-content-short" id="bookContentShort">
+              {{ book.content|truncatewords:200|linebreaksbr|safe }}
+            </p>
+            <p class="card-text book-content-full d-none" id="bookContentFull">
+              {{ book.content|linebreaksbr }}
+            </p>
+            <button
+              class="btn btn-link p-0 mt-1"
+              id="toggleContentBtn"
+              style="font-size: 0.95rem"
+            >
+              Xem thêm
+            </button>
+            {% else %}
+            <p class="card-text">{{ book.content|linebreaksbr }}</p>
+            {% endif %}
+          {% endwith %}
+          </div>
 
-                            <!-- Hiển thị đánh giá -->
-                            <h4>Reviews</h4>
-                            {% for review in book.reviews.all %}
-                                <div class="card mb-2" id="review-{{ review.id }}">
-                                    <div class="card-body">
-                                        <p>{{ review.comment }}</p>
-                                        <p class="rating">
-                                            Rating: {{ review.rating }}/5 <i class="fas fa-star"></i> 
-                                            by {{ review.user.username|default:'Anonymous' }}
-                                        </p>
-                                        <div class="d-flex align-items-center gap-2 mt-2">
-                                            <button type="button" class="btn btn-sm btn-outline-success btn-like" data-review-id="{{ review.id }}">
-                                                <i class="fas fa-thumbs-up"></i> Like
-                                                <span id="like-count-{{ review.id }}" class="ms-1">{{ review.like_count }}</span>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-outline-primary btn-reply" data-review-id="{{ review.id }}">
-                                                <i class="fas fa-reply"></i> comment
-                                            </button>
-                                        </div>
-                                        {% if review.replies.all %}
-                                            <div class="ms-4 mt-2" id="replies-{{ review.id }}">
-                                                {% for reply in review.replies.all %}
-                                                    <div class="border rounded p-2 mb-1 bg-light" id="reply-{{ reply.id }}">
-                                                        <strong>{{ reply.user.username|default:'Anonymous' }}</strong>: {{ reply.content }}
-                                                        <span class="text-muted" style="font-size:0.85em;">({{ reply.created_at|date:"Y-m-d H:i" }})</span>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        {% else %}
-                                            <div class="ms-4 mt-2" id="replies-{{ review.id }}"></div>
-                                        {% endif %}
-                                        <form id="reply-form-{{ review.id }}" class="mt-2 d-none" method="post" action="{% url 'reply_review' review.id %}">
-                                            {% csrf_token %}
-                                            <div class="form-floating mb-2">
-                                                <textarea class="form-control" id="reply-{{ review.id }}" name="reply" required placeholder=" " style="height: 100px"></textarea>
-                                                <label for="reply-{{ review.id }}">Write a comment...</label>
-                                            </div>
-                                            <button type="submit" class="btn btn-sm btn-primary">Post</button>
-                                            <button type="button" class="btn btn-sm btn-secondary btn-cancel-reply" data-review-id="{{ review.id }}">Cancel</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            {% empty %}
-                                <p>No reviews yet.</p>
-                            {% endfor %}
+          <p class="rating">
+            Average Rating: {{ book.rating }}/5
+            <i class="fas fa-star text-warning"></i>
+            <span class="badge bg-secondary ms-2"
+              >{{ book.reviews.count }} reviews</span
+            >
+          </p>
 
-                            <!-- Form thêm đánh giá -->
-                            <h4>Add a Review</h4>
-                            <form method="post" action="{% url 'book_detail' book.id %}">
-                                {% csrf_token %}
-                                <div class="form-floating mb-3">
-                                    <textarea class="form-control" id="review" name="comment" placeholder="Your review" style="height: 200px"></textarea>
-                                    <label for="review">Enter Your review</label>
-                                </div>
-                                <div class="mb-3 star-rating">
-                                    <input type="hidden" name="rating" id="rating-value" value="0">
-                                    <span class="star" data-value="1">&#9733;</span>
-                                    <span class="star" data-value="2">&#9733;</span>
-                                    <span class="star" data-value="3">&#9733;</span>
-                                    <span class="star" data-value="4">&#9733;</span>
-                                    <span class="star" data-value="5">&#9733;</span>
-                                    <div class="BookRatingStars__message">
-                                        <span class="Text">Rate this book</span>
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Submit Review</button>
-                            </form>
+          <!-- Want to Read Button -->
+          {% if user.is_authenticated %}
+          <div class="mb-3">
+            {% if book.is_in_want_to_read %}
+            <form
+              method="post"
+              action="{% url 'remove_from_want_to_read' book.id %}"
+              class="d-inline"
+            >
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger">
+                <i class="fas fa-heart"></i> Remove from Want to Read
+              </button>
+            </form>
+            {% else %}
+            <form
+              method="post"
+              action="{% url 'add_to_want_to_read' book.id %}"
+              class="d-inline"
+            >
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-primary">
+                <i class="far fa-heart"></i> Want to Read
+              </button>
+            </form>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="mb-3">
+            <a href="{% url 'login' %}" class="btn btn-outline-primary">
+              <i class="far fa-heart"></i> Want to Read (Login Required)
+            </a>
+          </div>
+          {% endif %}
 
-                            <!-- Form chỉnh sửa sách -->
-                            {% if edit_mode %}
-                                <h4>Edit Book</h4>
-                                <form method="post" enctype="multipart/form-data" action="{% url 'edit_book' book.id %}">
-                                    {% csrf_token %}
-                                    <div class="mb-3">
-                                        <label class="form-label">Title</label>
-                                        <input type="text" class="form-control" name="title" value="{{ book.title }}" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Content</label>
-                                        <textarea class="form-control" name="content" required>{{ book.content }}</textarea>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Rating</label>
-                                        <input type="number" class="form-control" name="rating" min="0" max="5" step="0.1" value="{{ book.rating }}" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Image</label>
-                                        <input type="file" class="form-control" name="image">
-                                    </div>
-                                    <button type="submit" class="btn btn-success">Save Changes</button>
-                                    <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
-                                </form>
-                            {% else %}
-                                <a href="{% url 'edit_book' book.id %}" class="btn btn-warning mt-3">Edit Book</a>
-                            {% endif %}
-                        </div>
-                    </div>
+          <!-- Hiển thị đánh giá -->
+          <h4>Reviews</h4>
+          {% for review in book.reviews.all %}
+          <div class="card mb-2" id="review-{{ review.id }}">
+            <div class="card-body">
+              <p>{{ review.comment }}</p>
+              <p class="rating">
+                Rating: {{ review.rating }}/5 <i class="fas fa-star"></i>
+                by {{ review.user.username|default:'Anonymous' }}
+              </p>
+              <div class="d-flex align-items-center gap-2 mt-2">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-success btn-like"
+                  data-review-id="{{ review.id }}"
+                >
+                  <i class="fas fa-thumbs-up"></i> Like
+                  <span id="like-count-{{ review.id }}" class="ms-1"
+                    >{{ review.like_count }}</span
+                  >
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary btn-reply"
+                  data-review-id="{{ review.id }}"
+                >
+                  <i class="fas fa-reply"></i> comment
+                </button>
+
+                {% if request.user == review.user %}
+                <form
+                  method="post"
+                  action="{% url 'delete_review' review.id %}"
+                  onsubmit="return confirm('Bạn có chắc muốn xóa bình luận này?');"
+                >
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-trash-alt"></i> Xóa
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+
+              {% if review.replies.all %}
+              <div class="ms-4 mt-2" id="replies-{{ review.id }}">
+                {% for reply in review.replies.all %}
+  <div class="border rounded p-2 mb-1 bg-light d-flex justify-content-between align-items-start" id="reply-{{ reply.id }}">
+    <div>
+      <strong>{{ reply.user.username|default:'Anonymous' }}</strong>: {{ reply.content }}
+      <span class="text-muted" style="font-size: 0.85em">({{ reply.created_at|date:"Y-m-d H:i" }})</span>
+    </div>
+    {% if user == reply.user %}
+    <form method="post" action="{% url 'delete_reply' reply.id %}" onsubmit="return confirm('Bạn có chắc muốn xóa phản hồi này?');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-danger ms-2">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </form>
+    {% endif %}
+  </div>
+{% endfor %}
+
+              </div>
+              {% else %}
+              <div class="ms-4 mt-2" id="replies-{{ review.id }}"></div>
+              {% endif %}
+              <form
+                id="reply-form-{{ review.id }}"
+                class="mt-2 d-none"
+                method="post"
+                action="{% url 'reply_review' review.id %}"
+              >
+                {% csrf_token %}
+                <div class="form-floating mb-2">
+                  <textarea
+                    class="form-control"
+                    id="reply-{{ review.id }}"
+                    name="reply"
+                    required
+                    placeholder=" "
+                    style="height: 100px"
+                  ></textarea>
+                  <label for="reply-{{ review.id }}">Write a comment...</label>
                 </div>
+                <button type="submit" class="btn btn-sm btn-primary">
+                  Post
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary btn-cancel-reply"
+                  data-review-id="{{ review.id }}"
+                >
+                  Cancel
+                </button>
+              </form>
             </div>
-        </div>
-    {% endblock %}
+          </div>
+          {% empty %}
+          <p>No reviews yet.</p>
+          {% endfor %}
 
-<style>
+          <!-- Form thêm đánh giá -->
+          <h4>Add a Review</h4>
+          <form method="post" action="{% url 'book_detail' book.id %}">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+              <textarea
+                class="form-control"
+                id="review"
+                name="comment"
+                placeholder="Your review"
+                style="height: 200px"
+              ></textarea>
+              <label for="review">Enter Your review</label>
+            </div>
+            <div class="mb-3 star-rating">
+              <input type="hidden" name="rating" id="rating-value" value="0" />
+              <span class="star" data-value="1">&#9733;</span>
+              <span class="star" data-value="2">&#9733;</span>
+              <span class="star" data-value="3">&#9733;</span>
+              <span class="star" data-value="4">&#9733;</span>
+              <span class="star" data-value="5">&#9733;</span>
+              <div class="BookRatingStars__message">
+                <span class="Text">Rate this book</span>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Review</button>
+          </form>
+
+          <!-- Form chỉnh sửa sách -->
+          {% if edit_mode %}
+          <h4>Edit Book</h4>
+          <form
+            method="post"
+            enctype="multipart/form-data"
+            action="{% url 'edit_book' book.id %}"
+          >
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Title</label>
+              <input
+                type="text"
+                class="form-control"
+                name="title"
+                value="{{ book.title }}"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Content</label>
+              <textarea class="form-control" name="content" required>
+{{ book.content }}</textarea
+              >
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Rating</label>
+              <input
+                type="number"
+                class="form-control"
+                name="rating"
+                min="0"
+                max="5"
+                step="0.1"
+                value="{{ book.rating }}"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Image</label>
+              <input type="file" class="form-control" name="image" />
+            </div>
+            <button type="submit" class="btn btn-success">Save Changes</button>
+            <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary"
+              >Cancel</a
+            >
+          </form>
+          {% else %}
+          <a href="{% url 'edit_book' book.id %}" class="btn btn-warning mt-3"
+            >Edit Book</a
+          >
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 .book-content-short {
-    max-height: 120px;
-    overflow: hidden;
-    position: relative;
-    display: -webkit-box;
-    -webkit-line-clamp: 5;
-    line-clamp: 5;
-    -webkit-box-orient: vertical;
-    white-space: pre-line;
-    transition: max-height 0.3s;
+  display: -webkit-box;
+  -webkit-line-clamp: 15;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
 }
+
+
+
 .book-content-full {
-    white-space: pre-line;
-    max-height: none !important;
-    overflow: visible !important;
-    display: block !important;
+  white-space: pre-line;
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
 }
+
+#toggleContentBtn {
+  font-weight: 500;
+  color: #007bff;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding-left: 0;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+#toggleContentBtn:hover {
+  color: #0056b3;
+}
+
 .bg-warning {
-    transition: background 0.5s;
+  transition: background 0.5s;
 }
+
 .floating-label-group {
-    position: relative;
-    margin-bottom: 1.5rem;
+  position: relative;
+  margin-bottom: 1.5rem;
 }
+
 .floating-label-group textarea:focus + label,
 .floating-label-group textarea:not(:placeholder-shown) + label {
-    top: -1.2em;
-    left: 0.5em;
-    font-size: 0.85em;
-    color: #495057;
-    background: #fff;
-    padding: 0 0.25em;
+  top: -1.2em;
+  left: 0.5em;
+  font-size: 0.85em;
+  color: #495057;
+  background: #fff;
+  padding: 0 0.25em;
 }
+
 .floating-label-group label {
-    position: absolute;
-    top: 0.75em;
-    left: 0.75em;
-    color: #aaa;
-    pointer-events: none;
-    transition: 0.2s;
-    background: transparent;
+  position: absolute;
+  top: 0.75em;
+  left: 0.75em;
+  color: #aaa;
+  pointer-events: none;
+  transition: 0.2s;
+  background: transparent;
 }
+
 .floating-label-group textarea {
-    padding-top: 1.5em;
+  padding-top: 1.5em;
 }
+
 .star-rating .star {
-    font-size: 48px !important;
-    color: #ccc;
-    cursor: pointer;
-    transition: color 0.2s;
+  font-size: 2.25rem;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s;
 }
+
 .star-rating .star.selected,
 .star-rating .star:hover,
 .star-rating .star:hover ~ .star {
-    color: #f5b301;
+  color: #f5b301;
 }
+
 .BookRatingStars__message {
-    margin-top: 16px;
-    text-align: center;
-    font-size: 1.15rem;
-    color: #444;
-    letter-spacing: 0.5px;
-    font-family: 'Montserrat', 'Segoe UI', 'Roboto', Arial, sans-serif;
-    font-weight: 600;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  margin-top: 16px;
+  text-align: center;
+  font-size: 1.15rem;
+  color: #444;
+  letter-spacing: 0.5px;
+  font-family: "Montserrat", "Segoe UI", "Roboto", Arial, sans-serif;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-</style>
+
+/* Responsive padding and font scaling */
+@media (max-width: 768px) {
+  .book-content-short,
+  .book-content-full {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  #toggleContentBtn {
+    font-size: 0.9rem;
+  }
+
+  .star-rating .star {
+    font-size: 2rem;
+  }
+}
+
 {% block script %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+  document.addEventListener("DOMContentLoaded", function () {
     // Toggle nội dung sách
-    const shortContent = document.getElementById('bookContentShort');
-    const fullContent = document.getElementById('bookContentFull');
-    const toggleBtn = document.getElementById('toggleContentBtn');
+    const shortContent = document.getElementById("bookContentShort");
+    const fullContent = document.getElementById("bookContentFull");
+    const toggleBtn = document.getElementById("toggleContentBtn");
     let expanded = false;
     if (shortContent && fullContent && toggleBtn) {
-        toggleBtn.addEventListener('click', function () {
-            expanded = !expanded;
-            if (expanded) {
-                shortContent.classList.add('d-none');
-                fullContent.classList.remove('d-none');
-                toggleBtn.textContent = 'Thu gọn';
-            } else {
-                shortContent.classList.remove('d-none');
-                fullContent.classList.add('d-none');
-                toggleBtn.textContent = 'Xem thêm';
-            }
-        });
+      toggleBtn.addEventListener("click", function () {
+        expanded = !expanded;
+        if (expanded) {
+          shortContent.classList.add("d-none");
+          fullContent.classList.remove("d-none");
+          toggleBtn.textContent = "Thu gọn";
+        } else {
+          shortContent.classList.remove("d-none");
+          fullContent.classList.add("d-none");
+          toggleBtn.textContent = "Xem thêm";
+        }
+      });
     }
 
     // Reply button
-    document.querySelectorAll('.btn-reply').forEach(function (button) {
-        button.addEventListener('click', function () {
-            const id = this.getAttribute('data-review-id');
-            document.getElementById('reply-form-' + id).classList.remove('d-none');
-        });
+    document.querySelectorAll(".btn-reply").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const id = this.getAttribute("data-review-id");
+        document.getElementById("reply-form-" + id).classList.remove("d-none");
+      });
     });
 
     // Cancel reply button
-    document.querySelectorAll('.btn-cancel-reply').forEach(function (button) {
-        button.addEventListener('click', function () {
-            const id = this.getAttribute('data-review-id');
-            document.getElementById('reply-form-' + id).classList.add('d-none');
-        });
+    document.querySelectorAll(".btn-cancel-reply").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const id = this.getAttribute("data-review-id");
+        document.getElementById("reply-form-" + id).classList.add("d-none");
+      });
     });
 
     // Like review
-    document.querySelectorAll('.btn-like').forEach(function (button) {
-    button.addEventListener('click', function () {
-        const reviewId = this.getAttribute('data-review-id');
+    document.querySelectorAll(".btn-like").forEach(function (button) {
+      button.addEventListener("click", function () {
+        const reviewId = this.getAttribute("data-review-id");
 
         fetch(`/review/${reviewId}/like/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+          method: "POST",
+          headers: {
+            "X-CSRFToken": csrftoken,
+            "X-Requested-With": "XMLHttpRequest",
+          },
         })
-        .then(response => response.json())
-        .then(data => {
+          .then((response) => response.json())
+          .then((data) => {
             // Cập nhật số lượt thích
-            const countSpan = document.getElementById('like-count-' + reviewId);
+            const countSpan = document.getElementById("like-count-" + reviewId);
             countSpan.textContent = data.like_count;
 
             // Toggle giao diện nút like
             if (data.liked) {
-                button.classList.remove('btn-outline-success');
-                button.classList.add('btn-success');
-                button.innerHTML = `<i class="fas fa-thumbs-up"></i> Liked <span id="like-count-${reviewId}" class="ms-1">${data.like_count}</span>`;
+              button.classList.remove("btn-outline-success");
+              button.classList.add("btn-success");
+              button.innerHTML = `<i class="fas fa-thumbs-up"></i> Liked <span id="like-count-${reviewId}" class="ms-1">${data.like_count}</span>`;
             } else {
-                button.classList.remove('btn-success');
-                button.classList.add('btn-outline-success');
-                button.innerHTML = `<i class="fas fa-thumbs-up"></i> Like <span id="like-count-${reviewId}" class="ms-1">${data.like_count}</span>`;
+              button.classList.remove("btn-success");
+              button.classList.add("btn-outline-success");
+              button.innerHTML = `<i class="fas fa-thumbs-up"></i> Like <span id="like-count-${reviewId}" class="ms-1">${data.like_count}</span>`;
             }
-        });
+          });
+      });
     });
-});
 
     // CSRF token
     function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === name + "=") {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
         }
-        return cookieValue;
+      }
+      return cookieValue;
     }
-    window.csrftoken = getCookie('csrftoken');
+    window.csrftoken = getCookie("csrftoken");
 
     // Xử lý submit reply bằng AJAX
-    document.querySelectorAll('form[id^="reply-form-"]').forEach(function(form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const reviewId = this.getAttribute('id').replace('reply-form-', '');
-            const formData = new FormData(this);
+    document
+      .querySelectorAll('form[id^="reply-form-"]')
+      .forEach(function (form) {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          const reviewId = this.getAttribute("id").replace("reply-form-", "");
+          const formData = new FormData(this);
 
-            fetch(`/review/${reviewId}/reply/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': window.csrftoken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Thêm reply mới vào danh sách reply
-                    const repliesDiv = document.getElementById('replies-' + reviewId);
-                    const replyHtml = `
+          fetch(`/review/${reviewId}/reply/`, {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": window.csrftoken,
+              "X-Requested-With": "XMLHttpRequest",
+            },
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                // Thêm reply mới vào danh sách reply
+                const repliesDiv = document.getElementById(
+                  "replies-" + reviewId
+                );
+                const replyHtml = `
                         <div class="border rounded p-2 mb-1 bg-light" id="reply-${data.reply.id}">
                             <strong>${data.reply.user}</strong>: ${data.reply.content}
                             <span class="text-muted" style="font-size:0.85em;">(${data.reply.created_at})</span>
                         </div>
                     `;
-                    repliesDiv.insertAdjacentHTML('beforeend', replyHtml);
-                    // Ẩn form và reset
-                    form.classList.add('d-none');
-                    form.reset();
-                } else {
-                    alert(data.error || 'Reply failed!');
-                }
+                repliesDiv.insertAdjacentHTML("beforeend", replyHtml);
+                // Ẩn form và reset
+                form.classList.add("d-none");
+                form.reset();
+              } else {
+                alert(data.error || "Reply failed!");
+              }
             });
         });
-    });
+      });
 
     // Star rating logic
-    const stars = document.querySelectorAll('.star-rating .star');
-    const ratingValue = document.getElementById('rating-value');
+    const stars = document.querySelectorAll(".star-rating .star");
+    const ratingValue = document.getElementById("rating-value");
     stars.forEach((star, idx) => {
-        star.addEventListener('mouseenter', function() {
-            stars.forEach((s, i) => {
-                s.style.color = i <= idx ? '#f5b301' : '#ccc';
-            });
+      star.addEventListener("mouseenter", function () {
+        stars.forEach((s, i) => {
+          s.style.color = i <= idx ? "#f5b301" : "#ccc";
         });
-        star.addEventListener('mouseleave', function() {
-            stars.forEach((s, i) => {
-                s.style.color = i < ratingValue.value ? '#f5b301' : '#ccc';
-            });
+      });
+      star.addEventListener("mouseleave", function () {
+        stars.forEach((s, i) => {
+          s.style.color = i < ratingValue.value ? "#f5b301" : "#ccc";
         });
-        star.addEventListener('click', function() {
-            ratingValue.value = idx + 1;
-            stars.forEach((s, i) => {
-                s.classList.toggle('selected', i <= idx);
-                s.style.color = i <= idx ? '#f5b301' : '#ccc';
-            });
+      });
+      star.addEventListener("click", function () {
+        ratingValue.value = idx + 1;
+        stars.forEach((s, i) => {
+          s.classList.toggle("selected", i <= idx);
+          s.style.color = i <= idx ? "#f5b301" : "#ccc";
         });
+      });
     });
     // Đặt lại màu khi load lại form
-    document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+    document
+      .querySelector(".star-rating")
+      .addEventListener("mouseleave", function () {
         stars.forEach((s, i) => {
-            s.style.color = i < ratingValue.value ? '#f5b301' : '#ccc';
+          s.style.color = i < ratingValue.value ? "#f5b301" : "#ccc";
         });
-    });
-});
+      });
+  });
 </script>
 {% endblock %}

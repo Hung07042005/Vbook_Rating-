@@ -26,7 +26,7 @@ class AuthorAdmin(admin.ModelAdmin):
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ['title', 'author', 'genre', 'rating', 'created_at']
+    list_display = ['title', 'author', 'genre', 'rating', 'created_at', 'published_date', 'price']
     list_filter = ['author', 'genre', 'rating', 'created_at']
     search_fields = ['title', 'content', 'author__name', 'genre__name']
     ordering = ['-created_at']
