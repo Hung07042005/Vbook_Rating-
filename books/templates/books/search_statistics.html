@@ -6,7 +6,8 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <h5 class="mb-2">🔎 Từ khóa được tìm nhiều nhất</h5>
-            <ul class="list-group mb-3">
+            <canvas id="topKeywordsChart" height="180"></canvas>
+            <ul class="list-group mb-3 mt-3">
                 {% for kw in top_keywords %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span>{{ kw.query }}</span>
@@ -30,7 +31,8 @@
         </div>
         <div class="col-md-6">
             <h5 class="mb-2">👤 Tác giả được xem nhiều</h5>
-            <ul class="list-group mb-3">
+            <canvas id="topAuthorsChart" height="180"></canvas>
+            <ul class="list-group mb-3 mt-3">
                 {% for author in top_authors %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span>{{ author.name }}</span>
@@ -86,4 +88,67 @@
         </tbody>
     </table>
 </div>
+
+<!-- Truyền dữ liệu cho Chart.js bằng json_script -->
+{{ top_keywords|json_script:"topKeywordsData" }}
+{{ top_authors|json_script:"topAuthorsData" }}
+{% endblock %}
+
+{% block script %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Dữ liệu cho top từ khóa
+const topKeywords = JSON.parse(document.getElementById('topKeywordsData').textContent);
+const keywordLabels = topKeywords.map(item => item.query);
+const keywordCounts = topKeywords.map(item => item.count);
+
+const ctxKeywords = document.getElementById('topKeywordsChart').getContext('2d');
+if (keywordLabels.length > 0) {
+    new Chart(ctxKeywords, {
+        type: 'bar',
+        data: {
+            labels: keywordLabels,
+            datasets: [{
+                label: 'Số lượt tìm kiếm',
+                data: keywordCounts,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+// Dữ liệu cho top tác giả
+const topAuthors = JSON.parse(document.getElementById('topAuthorsData').textContent);
+const authorLabels = topAuthors.map(item => item.name);
+const authorCounts = topAuthors.map(item => item.view_count);
+
+const ctxAuthors = document.getElementById('topAuthorsChart').getContext('2d');
+if (authorLabels.length > 0) {
+    new Chart(ctxAuthors, {
+        type: 'bar',
+        data: {
+            labels: authorLabels,
+            datasets: [{
+                label: 'Lượt xem',
+                data: authorCounts,
+                backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                borderColor: 'rgba(40, 167, 69, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+</script>
 {% endblock %}

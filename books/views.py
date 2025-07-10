@@ -16,6 +16,9 @@ from .models import Notification
 from datetime import datetime
 from .views_search_stat import search_statistics
 from django.contrib.auth.decorators import user_passes_test
+from django.core import serializers
+import unicodedata
+import re
 
 def index(request):
     books = Book.objects.all().order_by('-created_at')
@@ -415,28 +418,62 @@ def search_books(request):
         'query': tu_khoa_tim_kiem
     })
 
+def normalize_query(q):
+    if not q:
+        return ''
+    q = q.lower().strip()
+    q = unicodedata.normalize('NFD', q)
+    q = ''.join([c for c in q if unicodedata.category(c) != 'Mn'])  # remove accents
+    q = re.sub(r'\s+', ' ', q)  # remove extra spaces
+    return q
+
 def is_search_statistician(user):
     return user.is_superuser or user.groups.filter(name='Thống kê tìm kiếm').exists()
 
 @user_passes_test(is_search_statistician)
 def search_statistics(request):
     logs = SearchLog.objects.select_related('user').order_by('-searched_at')[:100]
-    # Thống kê từ khóa được tìm nhiều nhất
-    top_keywords = (SearchLog.objects.values('query')
-                    .annotate(count=Count('id'))
-                    .order_by('-count')[:10])
-    # Thống kê các từ khóa không có kết quả
-    no_result_keywords = (SearchLog.objects
-        .filter(query__isnull=False)
-        .exclude(query='')
-        .filter(result_count=0)
-        .values('query')
-        .annotate(count=Count('id'))
-        .order_by('-count')[:10])
+    # Gom nhóm từ khóa tương đương
+    all_logs = SearchLog.objects.exclude(query='').exclude(query__isnull=True)
+    keyword_counter = {}
+    no_result_counter = {}
+    for log in all_logs:
+        norm = normalize_query(log.query)
+        if not norm:
+            continue
+        # Đếm tổng số lần tìm kiếm
+        if norm not in keyword_counter:
+            keyword_counter[norm] = {'query': log.query, 'count': 0}
+        keyword_counter[norm]['count'] += 1
+        # Kiểm tra có phải là từ khóa không có kết quả không
+        book_count = Book.objects.filter(
+            Q(title__icontains=log.query) |
+            Q(author__name__icontains=log.query) |
+            Q(content__icontains=log.query) |
+            Q(genre__name__icontains=log.query)
+        ).count()
+        author_count = Author.objects.filter(
+            Q(name__icontains=log.query) |
+            Q(bio__icontains=log.query) |
+            Q(nationality__icontains=log.query)
+        ).count()
+        genre_count = Genre.objects.filter(
+            Q(name__icontains=log.query) |
+            Q(description__icontains=log.query)
+        ).count()
+        if book_count == 0 and author_count == 0 and genre_count == 0:
+            if norm not in no_result_counter:
+                no_result_counter[norm] = {'query': log.query, 'count': 0}
+            no_result_counter[norm]['count'] += 1
+    # Lấy 10 từ khóa nhiều nhất
+    top_keywords = sorted(keyword_counter.values(), key=lambda x: -x['count'])[:10]
+    # Lấy 10 từ khóa không có kết quả nhiều nhất
+    no_result_keywords = sorted(no_result_counter.values(), key=lambda x: -x['count'])[:10]
     # Tác giả được xem nhiều nhất (dựa trên số sách của tác giả được thêm vào WantToRead)
-    top_authors = (Author.objects.annotate(
+    top_authors_qs = (Author.objects.annotate(
         view_count=Count('books__want_to_read_users', distinct=True)
     ).order_by('-view_count')[:10])
+    top_authors = list(top_authors_qs.values('name', 'view_count'))
     # Sách được xem nhiều nhất (dựa trên số user thêm vào WantToRead)
     top_books = (Book.objects.annotate(
         view_count=Count('want_to_read_users', distinct=True)
