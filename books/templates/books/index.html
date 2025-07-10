@@ -1,6 +1,6 @@
 {% extends 'books/base.html' %}
 
-{% block title %}Vbook Rating - Discover Amazing Books{% endblock %}
+{% block title %}Vbook Rating - Khám phá những cuốn sách tuyệt vời{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -8,15 +8,15 @@
     <div class="hero-overlay"></div>
     <div class="container">
         <div class="hero-content text-center">
-            <h1 class="hero-title">Discover Your Next Favorite Book</h1>
-            <p class="hero-subtitle">Explore thousands of books, read reviews, and build your reading list</p>
+            <h1 class="hero-title">Khám phá cuốn sách yêu thích tiếp theo của bạn</h1>
+            <p class="hero-subtitle">Khám phá hàng ngàn cuốn sách, đọc đánh giá và xây dựng danh sách đọc của bạn</p>
             
             <!-- Enhanced Search Form -->
             <div class="search-container">
                 <form method="get" class="search-form">
                     <div class="search-input-group">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" name="q" class="search-input" placeholder="Search by title, author, or genre..." value="{{ query|default:'' }}">
+                        <input type="text" name="q" class="search-input" placeholder="Tìm kiếm theo tên sách, tác giả hoặc thể loại..." value="{{ query|default:'' }}">
                         <button type="submit" class="search-btn">
                             <i class="fas fa-search"></i>
                         </button>
@@ -26,7 +26,7 @@
             
             {% if query %}
                 <div class="search-results-info">
-                    <p>Search results for: <strong>"{{ query }}"</strong></p>
+                    <p>Kết quả tìm kiếm cho: <strong>"{{ query }}"</strong></p>
                 </div>
             {% endif %}
         </div>
@@ -39,8 +39,8 @@
         <!-- Section Header -->
         {% if not query %}
             <div class="section-header">
-                <h2 class="section-title">Featured Books</h2>
-                <p class="section-subtitle">Handpicked books for you to explore</p>
+                <h2 class="section-title">Sách nổi bật</h2>
+                <p class="section-subtitle">Những cuốn sách được chọn lọc dành cho bạn</p>
             </div>
         {% endif %}
         
@@ -54,12 +54,12 @@
                                 {% if book.image and book.image.url %}
                                     <img src="{{ book.image.url }}" class="book-image" alt="{{ book.title }}">
                                 {% else %}
-                                    <img src="https://via.placeholder.com/300x400.png?text=No+Image" class="book-image" alt="No Image">
+                                    <img src="https://via.placeholder.com/300x400.png?text=Không+có+hình" class="book-image" alt="Không có hình">
                                 {% endif %}
                             </a>
                             <div class="book-overlay">
                                 <a href="{% url 'book_detail' book.id %}" class="view-details-btn">
-                                    <i class="fas fa-eye"></i> View Details
+                                    <i class="fas fa-eye"></i> Xem chi tiết
                                 </a>
                             </div>
                         </div>
@@ -81,7 +81,7 @@
                                         {% endfor %}
                                     </div>
                                     <span class="rating-text">{{ book.rating }}/5</span>
-                                    <span class="badge bg-secondary ms-2">{{ book.reviews.count }} reviews</span>
+                                    <span class="badge bg-secondary ms-2">{{ book.reviews.count }} đánh giá</span>
                                 </div>
                                 
                                 <p class="book-author">
@@ -102,14 +102,14 @@
                                         <form method="post" action="{% url 'remove_from_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
                                             {% csrf_token %}
                                             <button type="submit" class="action-btn remove-btn">
-                                                <i class="fas fa-heart"></i> Remove
+                                                <i class="fas fa-heart"></i> Bỏ khỏi danh sách
                                             </button>
                                         </form>
                                     {% else %}
                                         <form method="post" action="{% url 'add_to_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
                                             {% csrf_token %}
                                             <button type="submit" class="action-btn add-btn">
-                                                <i class="far fa-heart"></i> Want to Read
+                                                <i class="far fa-heart"></i> Muốn đọc
                                             </button>
                                         </form>
                                     {% endif %}
@@ -117,7 +117,7 @@
                             {% else %}
                                 <div class="book-actions">
                                     <a href="{% url 'login' %}" class="action-btn login-btn">
-                                        <i class="far fa-heart"></i> Login to Save
+                                        <i class="far fa-heart"></i> Đăng nhập để lưu
                                     </a>
                                 </div>
                             {% endif %}
@@ -129,8 +129,8 @@
                     <div class="empty-icon">
                         <i class="fas fa-book-open"></i>
                     </div>
-                    <h3>No books found</h3>
-                    <p>Try adjusting your search criteria or browse our collection</p>
+                    <h3>Không tìm thấy sách nào</h3>
+                    <p>Hãy thử thay đổi tiêu chí tìm kiếm hoặc duyệt bộ sưu tập của chúng tôi</p>
                 </div>
             {% endfor %}
         </div>
@@ -235,8 +235,8 @@
     <div id="wantToReadToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
             <i class="fas fa-heart text-primary me-2"></i>
-            <strong class="me-auto">Want to Read</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            <strong class="me-auto">Muốn đọc</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Đóng"></button>
         </div>
         <div class="toast-body" id="toastMessage">
             <!-- Message will be inserted here -->
@@ -276,13 +276,13 @@
                             // Change to "Want to Read" button
                             this.action = this.action.replace('remove-from-want-to-read', 'add-to-want-to-read');
                             button.className = 'action-btn add-btn';
-                            button.innerHTML = '<i class="far fa-heart"></i> Want to Read';
+                            button.innerHTML = '<i class="far fa-heart"></i> Muốn đọc';
                             this.dataset.bookId = bookId;
                         } else {
                             // Change to "Remove" button
                             this.action = this.action.replace('add-to-want-to-read', 'remove-from-want-to-read');
                             button.className = 'action-btn remove-btn';
-                            button.innerHTML = '<i class="fas fa-heart"></i> Remove';
+                            button.innerHTML = '<i class="fas fa-heart"></i> Bỏ khỏi danh sách';
                             this.dataset.bookId = bookId;
                         }
                         
@@ -293,7 +293,7 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    toastMessage.textContent = 'An error occurred. Please try again.';
+                    toastMessage.textContent = 'Đã xảy ra lỗi. Vui lòng thử lại.';
                     toast.show();
                 });
             });
