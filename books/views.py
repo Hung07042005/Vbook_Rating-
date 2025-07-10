@@ -17,12 +17,24 @@ from datetime import datetime
 
 def index(request):
     books = Book.objects.all().order_by('-created_at')
+    authors = Author.objects.none()
+    genres = Genre.objects.none()
     query = request.GET.get('q')
     if query:
         books = books.filter(
             Q(title__icontains=query) |
             Q(author__name__icontains=query) |
-            Q(content__icontains=query)
+            Q(content__icontains=query) |
+            Q(genre__name__icontains=query)
+        ).distinct()
+        authors = Author.objects.filter(
+            Q(name__icontains=query) |
+            Q(bio__icontains=query) |
+            Q(nationality__icontains=query)
+        ).distinct()
+        genres = Genre.objects.filter(
+            Q(name__icontains=query) |
+            Q(description__icontains=query)
         ).distinct()
     
     # Kiểm tra xem user đã đăng nhập và đã thêm sách nào vào want to read chưa
@@ -50,7 +62,9 @@ def index(request):
     ).order_by('-book_count')[:8]
     
     context = {
-        'books': books, 
+        'books': books,
+        'authors': authors,
+        'genres': genres,
         'query': query,
         'featured_authors': featured_authors,
         'featured_genres': featured_genres
