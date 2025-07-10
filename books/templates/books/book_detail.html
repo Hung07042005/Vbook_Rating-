@@ -33,8 +33,14 @@
             <strong>Ngày xuất bản:</strong>
              {{book.published_date|date:"d/m/Y"}}
           </p>
+          {% endif %} {% if book.publish_year %}
+          <p><strong>Năm xuất bản:</strong> {{ book.publish_year }}</p>
           {% endif %} {% if book.price %}
           <p><strong>Giá sách:</strong> {{ book.price }} VNĐ</p>
+          {% endif %} {% if book.reference_price %}
+          <p><strong>Giá tham khảo:</strong> {{ book.reference_price }} VNĐ</p>
+          {% endif %} {% if book.external_url %}
+          <p><strong>Đọc online:</strong> <a href="{{ book.external_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-info">Đọc truyện</a></p>
           {% endif %} {% if book.genre %}
           <p class="mb-2">
             <span class="badge bg-{{ book.genre.color }}">
@@ -284,6 +290,18 @@
             <div class="mb-3">
               <label class="form-label">Image</label>
               <input type="file" class="form-control" name="image" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Link đọc online</label>
+              <input type="url" class="form-control" name="external_url" value="{{ book.external_url }}" placeholder="https://..." />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Giá tham khảo (VNĐ)</label>
+              <input type="number" class="form-control" name="reference_price" value="{{ book.reference_price }}" min="0" step="1000" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Năm xuất bản</label>
+              <input type="number" class="form-control" name="publish_year" value="{{ book.publish_year }}" min="1000" max="2100" />
             </div>
             <button type="submit" class="btn btn-success">Save Changes</button>
             <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary"

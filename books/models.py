@@ -35,6 +35,9 @@ class Book(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     published_date = models.DateField(null=True, blank=True)
+    external_url = models.URLField(max_length=500, blank=True, null=True, help_text="Link đọc truyện online")
+    reference_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Giá tham khảo (VNĐ)")
+    publish_year = models.PositiveIntegerField(null=True, blank=True, help_text="Năm xuất bản")
 
 
     def update_rating(self):
