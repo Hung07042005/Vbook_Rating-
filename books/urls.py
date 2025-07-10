@@ -10,5 +10,6 @@ urlpatterns = [
     path('notifications/', views.notifications, name='notifications'),
     path('review/<int:review_id>/delete/', views.delete_review, name='delete_review'),
     path('reply/<int:reply_id>/delete/', views.delete_reply, name='delete_reply'),
+    path('search-statistics/', views.search_statistics, name='search_statistics'),
 
 ]

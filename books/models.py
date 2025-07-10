@@ -106,3 +106,12 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username}: {self.message}"
+
+class SearchLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    query = models.CharField(max_length=255)
+    searched_at = models.DateTimeField(auto_now_add=True)
+    result_count = models.IntegerField(default=0)  # Số lượng kết quả trả về khi tìm kiếm
+
+    def __str__(self):
+        return f"{self.user} - {self.query} ({self.searched_at})"

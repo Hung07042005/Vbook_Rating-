@@ -120,6 +120,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 LOGIN_REDIRECT_URL = '/'  # Chuyển hướng về trang index sau khi đăng nhập
+LOGOUT_REDIRECT_URL = '/'  # Chuyển hướng về trang index sau khi đăng xuất
 
 # Media files (Uploaded images)
 MEDIA_URL = '/media/'

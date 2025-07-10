@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Book, Review, Author, WantToRead, Genre
+from .models import Book, Review, Author, WantToRead, Genre, SearchLog
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Count, Avg
+from django.db.models import Q, Count, Avg, F
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
@@ -14,28 +14,40 @@ from .models import Review, Reply
 from django.contrib.auth.models import User
 from .models import Notification
 from datetime import datetime
+from .views_search_stat import search_statistics
+from django.contrib.auth.decorators import user_passes_test
 
 def index(request):
     books = Book.objects.all().order_by('-created_at')
     authors = Author.objects.none()
     genres = Genre.objects.none()
     query = request.GET.get('q')
+    result_count = 0
     if query:
-        books = books.filter(
+        books_qs = books.filter(
             Q(title__icontains=query) |
             Q(author__name__icontains=query) |
             Q(content__icontains=query) |
             Q(genre__name__icontains=query)
         ).distinct()
-        authors = Author.objects.filter(
+        authors_qs = Author.objects.filter(
             Q(name__icontains=query) |
             Q(bio__icontains=query) |
             Q(nationality__icontains=query)
         ).distinct()
-        genres = Genre.objects.filter(
+        genres_qs = Genre.objects.filter(
             Q(name__icontains=query) |
             Q(description__icontains=query)
         ).distinct()
+        result_count = books_qs.count() + authors_qs.count() + genres_qs.count()
+        # Ghi log tìm kiếm với số lượng kết quả
+        if request.user.is_authenticated:
+            SearchLog.objects.create(user=request.user, query=query, result_count=result_count)
+        else:
+            SearchLog.objects.create(user=None, query=query, result_count=result_count)
+        books = books_qs
+        authors = authors_qs
+        genres = genres_qs
     
     # Kiểm tra xem user đã đăng nhập và đã thêm sách nào vào want to read chưa
     if request.user.is_authenticated:
@@ -253,15 +265,14 @@ def add_to_want_to_read(request, book_id):
         want_to_read, created = WantToRead.objects.get_or_create(user=request.user, book=book)
         
         if created:
-            messages.success(request, f'"{book.title}" has been added to your Want to Read list!')
+            messages.success(request, f'"{book.title}" đã được thêm vào danh sách Muốn đọc của bạn!')
         else:
-            messages.info(request, f'"{book.title}" is already in your Want to Read list!')
-        
+            messages.info(request, f'"{book.title}" đã có trong danh sách Muốn đọc của bạn!')
         # Nếu request là AJAX, trả về JSON response
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
-                'message': f'"{book.title}" has been added to your Want to Read list!' if created else f'"{book.title}" is already in your Want to Read list!',
+                'message': f'"{book.title}" đã được thêm vào danh sách Muốn đọc của bạn!' if created else f'"{book.title}" đã có trong danh sách Muốn đọc của bạn!',
                 'is_in_list': True
             })
         
@@ -276,13 +287,12 @@ def remove_from_want_to_read(request, book_id):
         try:
             want_to_read = WantToRead.objects.get(user=request.user, book=book)
             want_to_read.delete()
-            messages.success(request, f'"{book.title}" has been removed from your Want to Read list!')
-            
+            messages.success(request, f'"{book.title}" đã được xóa khỏi danh sách Muốn đọc của bạn!')
             # Nếu request là AJAX, trả về JSON response
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
-                    'message': f'"{book.title}" has been removed from your Want to Read list!',
+                    'message': f'"{book.title}" đã được xóa khỏi danh sách Muốn đọc của bạn!',
                     'is_in_list': False
                 })
         except WantToRead.DoesNotExist:
@@ -384,3 +394,62 @@ def delete_reply(request, reply_id):
     reply.delete()
     
     return redirect('book_detail', book_id=reply.review.book.id)
+
+def search_books(request):
+    tu_khoa_tim_kiem = request.GET.get('q', '')
+    ket_qua_sach = Book.objects.filter(
+        Q(title__icontains=tu_khoa_tim_kiem) |
+        Q(author__name__icontains=tu_khoa_tim_kiem) |
+        Q(content__icontains=tu_khoa_tim_kiem) |
+        Q(genre__name__icontains=tu_khoa_tim_kiem)
+    ).distinct()
+
+    # Lưu lịch sử tìm kiếm
+    if request.user.is_authenticated:
+        SearchLog.objects.create(user=request.user, query=tu_khoa_tim_kiem)
+    else:
+        SearchLog.objects.create(user=None, query=tu_khoa_tim_kiem)
+
+    return render(request, 'books/search_results.html', {
+        'books': ket_qua_sach,
+        'query': tu_khoa_tim_kiem
+    })
+
+def is_search_statistician(user):
+    return user.is_superuser or user.groups.filter(name='Thống kê tìm kiếm').exists()
+
+@user_passes_test(is_search_statistician)
+def search_statistics(request):
+    logs = SearchLog.objects.select_related('user').order_by('-searched_at')[:100]
+    # Thống kê từ khóa được tìm nhiều nhất
+    top_keywords = (SearchLog.objects.values('query')
+                    .annotate(count=Count('id'))
+                    .order_by('-count')[:10])
+    # Thống kê các từ khóa không có kết quả
+    no_result_keywords = (SearchLog.objects
+        .filter(query__isnull=False)
+        .exclude(query='')
+        .filter(result_count=0)
+        .values('query')
+        .annotate(count=Count('id'))
+        .order_by('-count')[:10])
+    # Tác giả được xem nhiều nhất (dựa trên số sách của tác giả được thêm vào WantToRead)
+    top_authors = (Author.objects.annotate(
+        view_count=Count('books__want_to_read_users', distinct=True)
+    ).order_by('-view_count')[:10])
+    # Sách được xem nhiều nhất (dựa trên số user thêm vào WantToRead)
+    top_books = (Book.objects.annotate(
+        view_count=Count('want_to_read_users', distinct=True)
+    ).order_by('-view_count')[:10])
+    # Thể loại được tìm nhiều nhất (dựa trên số sách thuộc thể loại được thêm vào WantToRead)
+    top_genres = (Genre.objects.annotate(
+        search_count=Count('books__want_to_read_users', distinct=True)
+    ).order_by('-search_count')[:10])
+    return render(request, 'books/search_statistics.html', {
+        'logs': logs,
+        'top_keywords': top_keywords,
+        'no_result_keywords': no_result_keywords,
+        'top_authors': top_authors,
+        'top_books': top_books,
+        'top_genres': top_genres,
+    })

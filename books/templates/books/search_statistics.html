@@ -1,0 +1,89 @@
+{% extends 'books/base.html' %}
+{% block title %}Thống kê tìm kiếm{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Thống kê tìm kiếm</h1>
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h5 class="mb-2">🔎 Từ khóa được tìm nhiều nhất</h5>
+            <ul class="list-group mb-3">
+                {% for kw in top_keywords %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ kw.query }}</span>
+                    <span class="badge bg-primary rounded-pill">{{ kw.count }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+            <h5 class="mb-2">❌ Từ khóa không có kết quả</h5>
+            <ul class="list-group mb-3">
+                {% for kw in no_result_keywords %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ kw.query }}</span>
+                    <span class="badge bg-danger rounded-pill">{{ kw.count }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h5 class="mb-2">👤 Tác giả được xem nhiều</h5>
+            <ul class="list-group mb-3">
+                {% for author in top_authors %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ author.name }}</span>
+                    <span class="badge bg-success rounded-pill">{{ author.view_count }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+            <h5 class="mb-2">📚 Sách được xem nhiều</h5>
+            <ul class="list-group mb-3">
+                {% for book in top_books %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ book.title }}</span>
+                    <span class="badge bg-info rounded-pill">{{ book.view_count }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+            <h5 class="mb-2">🏷️ Thể loại được tìm nhiều</h5>
+            <ul class="list-group mb-3">
+                {% for genre in top_genres %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ genre.name }}</span>
+                    <span class="badge bg-warning rounded-pill">{{ genre.search_count }}</span>
+                </li>
+                {% empty %}
+                <li class="list-group-item">Không có dữ liệu</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <h5 class="mb-3">🕑 Lịch sử tìm kiếm gần đây</h5>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Người dùng</th>
+                <th>Từ khóa tìm kiếm</th>
+                <th>Thời gian</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{% if log.user %}{{ log.user.username }}{% else %}Khách{% endif %}</td>
+                <td>{{ log.query }}</td>
+                <td>{{ log.searched_at|date:'d/m/Y H:i' }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center">Chưa có dữ liệu</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -32,6 +32,7 @@ urlpatterns = [
     path('popular/', views.popular_books, name='popular_books'),
     path('new/', views.new_books, name='new_books'),
     path('notifications/', views.notifications, name='notifications'),
+    path('search-statistics/', views.search_statistics, name='search_statistics'),
 ]
 
 if settings.DEBUG:

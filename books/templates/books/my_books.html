@@ -7,7 +7,7 @@
     <div class="row">
         <div class="col-12">
             <h1 class="text-center mb-4">
-                <i class="fas fa-bookmark text-primary"></i> My Books - Want to Read
+                <i class="fas fa-bookmark text-primary"></i> Sách của tôi - Muốn đọc
             </h1>
             
             {% if want_to_read_books %}
@@ -35,11 +35,11 @@
                                         <form method="post" action="{% url 'remove_from_want_to_read' want_to_read.book.id %}" class="d-inline">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                <i class="fas fa-heart"></i> Remove from List
+                                                <i class="fas fa-heart"></i> Xóa khỏi danh sách
                                             </button>
                                         </form>
                                         <a href="{% url 'book_detail' want_to_read.book.id %}" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-eye"></i> View Details
+                                            <i class="fas fa-eye"></i> Xem chi tiết
                                         </a>
                                     </div>
                                 </div>

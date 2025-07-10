@@ -60,6 +60,13 @@
                         <a class="nav-link" href="{% url 'about' %}">Về chúng tôi</a>
                     </li>
                 </ul>
+                {% if user.is_superuser or user.groups.all|length > 0 %}
+                <div class="ms-3">
+                    <a href="{% url 'search_statistics' %}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-chart-bar"></i> Thống kê tìm kiếm
+                    </a>
+                </div>
+                {% endif %}
 
                 <div>
                     {% if user.is_authenticated %}
