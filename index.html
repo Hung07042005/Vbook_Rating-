@@ -1,78 +1,541 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BookRating - Home</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .navbar-brand img { max-height: 40px; }
-        .book-card { margin-bottom: 20px; }
-        .book-card img { max-height: 200px; object-fit: cover; }
-        .rating { color: #f39c12; }
-        footer { background-color: #f8f9fa; padding: 20px 0; }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="https://via.placeholder.com/150x40.png?text=BookRating" alt="BookRating Logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Books</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Authors</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">About</a>
-                    </li>
-                </ul>
-                <form class="d-flex me-3">
-                    <input class="form-control me-2" type="search" placeholder="Search books..." aria-label="Search">
-                    <button class="btn btn-outline-primary" type="submit"><i class="fas fa-search"></i></button>
+{% extends 'books/base.html' %}
+
+{% block title %}Vbook Rating - Khám phá những cuốn sách tuyệt vời{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title">Khám phá cuốn sách yêu thích tiếp theo của bạn</h1>
+            <p class="hero-subtitle">Khám phá hàng ngàn cuốn sách, đọc đánh giá và xây dựng danh sách đọc của bạn</p>
+            
+            <!-- Enhanced Search Form -->
+            <div class="search-container">
+                <form method="get" class="search-form">
+                    <div class="search-input-group">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" name="q" class="search-input" placeholder="Tìm kiếm theo tên sách, tác giả hoặc thể loại..." value="{{ query|default:'' }}">
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
                 </form>
-                <div>
-                    <a href="#" class="btn btn-outline-primary me-2">Sign In</a>
-                    <a href="#" class="btn btn-primary">Join</a>
-                </div>
             </div>
+            
+            {% if query %}
+                <div class="search-results-info">
+                    <p>Kết quả tìm kiếm cho: <strong>"{{ query }}"</strong></p>
+                </div>
+            {% endif %}
         </div>
-    </nav>
-
-    <!-- Main Content -->
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">Welcome to BookRating!</h1>
-        <p class="text-center">This is a static landing page for GitHub Pages or static hosting. For full functionality, please run the Django app locally or on a server.</p>
     </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="text-center mt-5">
-        <div class="container">
-            <p class="mb-1">&copy; 2025 BookRating. All rights reserved.</p>
-            <p class="mb-1">Follow us on:
-                <a href="#" class="text-primary me-2"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="text-primary me-2"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="text-primary"><i class="fab fa-instagram"></i></a>
-            </p>
-            <p>Contact us: <a href="mailto:support@bookrating.com">support@bookrating.com</a></p>
+<!-- Main Content -->
+<div class="main-content">
+    <div class="container">
+        {% if query %}
+            <!-- Kết quả Sách -->
+            <div class="section-header">
+                <h2 class="section-title">Sách phù hợp</h2>
+            </div>
+            <div class="books-grid">
+                {% for book in books %}
+                    <div class="book-item">
+                        <div class="book-card">
+                            <div class="book-image-container">
+                                <a href="{% url 'book_detail' book.id %}">
+                                    {% if book.image and book.image.url %}
+                                        <img src="{{ book.image.url }}" class="book-image" alt="{{ book.title }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/300x400.png?text=Không+có+hình" class="book-image" alt="Không có hình">
+                                    {% endif %}
+                                </a>
+                                <div class="book-overlay">
+                                    <a href="{% url 'book_detail' book.id %}" class="view-details-btn">
+                                        <i class="fas fa-eye"></i> Xem chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="book-info">
+                                <h3 class="book-title">
+                                    <a href="{% url 'book_detail' book.id %}">{{ book.title }}</a>
+                                </h3>
+                                
+                                <div class="book-meta">
+                                    <div class="rating-container">
+                                        <div class="stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= book.rating %}
+                                                    <i class="fas fa-star star-filled"></i>
+                                                {% else %}
+                                                    <i class="far fa-star star-empty"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="rating-text">{{ book.rating }}/5</span>
+                                        <span class="badge bg-secondary ms-2">{{ book.reviews.count }} đánh giá</span>
+                                    </div>
+                                    
+                                    <p class="book-author">
+                                        <i class="fas fa-user"></i> {{ book.author.name }}
+                                    </p>
+                                    
+                                    {% if book.genre %}
+                                        <p class="book-genre">
+                                            <i class="fas fa-tag"></i> 
+                                            <a href="{% url 'genre_detail' book.genre.id %}">{{ book.genre.name }}</a>
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if user.is_authenticated %}
+                                    <div class="book-actions">
+                                        {% if book.is_in_want_to_read %}
+                                            <form method="post" action="{% url 'remove_from_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="action-btn remove-btn">
+                                                    <i class="fas fa-heart"></i> Bỏ khỏi danh sách
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{% url 'add_to_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="action-btn add-btn">
+                                                    <i class="far fa-heart"></i> Muốn đọc
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="book-actions">
+                                        <a href="{% url 'login' %}" class="action-btn login-btn">
+                                            <i class="far fa-heart"></i> Đăng nhập để lưu
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3>Không tìm thấy sách nào</h3>
+                        <p>Hãy thử thay đổi tiêu chí tìm kiếm hoặc duyệt bộ sưu tập của chúng tôi</p>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Kết quả Tác giả -->
+            <div class="section-header mt-5">
+                <h2 class="section-title">Tác giả phù hợp</h2>
+            </div>
+            <div class="authors-grid">
+                {% for author in authors %}
+                    <div class="author-item">
+                        <div class="author-card">
+                            <div class="author-avatar">
+                                {% if author.image %}
+                                    <img src="{{ author.image.url }}" alt="{{ author.name }}" class="author-image">
+                                {% else %}
+                                    <i class="fas fa-user-circle"></i>
+                                {% endif %}
+                            </div>
+                            <div class="author-info">
+                                <h3 class="author-name">
+                                    <a href="{% url 'author_detail' author.id %}">{{ author.name }}</a>
+                                </h3>
+                                <a href="{% url 'author_detail' author.id %}" class="view-author-btn">
+                                    Xem tác giả
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <h3>Không tìm thấy tác giả nào</h3>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Kết quả Thể loại -->
+            <div class="section-header mt-5">
+                <h2 class="section-title">Thể loại phù hợp</h2>
+            </div>
+            <div class="genres-grid">
+                {% for genre in genres %}
+                    <div class="genre-item">
+                        <div class="genre-card">
+                            <div class="genre-icon">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <div class="genre-info">
+                                <h3 class="genre-name">
+                                    <a href="{% url 'genre_detail' genre.id %}">{{ genre.name }}</a>
+                                </h3>
+                                <span class="genre-count">
+                                    {{ genre.book_count }} sách
+                                </span>
+                            </div>
+                            <a href="{% url 'genre_detail' genre.id %}" class="genre-link">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h3>Không tìm thấy thể loại nào</h3>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Section Header -->
+            {% if not query %}
+                <div class="section-header">
+                    <h2 class="section-title">Sách nổi bật</h2>
+                    <p class="section-subtitle">Những cuốn sách được chọn lọc dành cho bạn</p>
+                </div>
+            {% endif %}
+            
+            <!-- Books Grid -->
+            <div class="books-grid">
+                {% for book in books %}
+                    <div class="book-item">
+                        <div class="book-card">
+                            <div class="book-image-container">
+                                <a href="{% url 'book_detail' book.id %}">
+                                    {% if book.image and book.image.url %}
+                                        <img src="{{ book.image.url }}" class="book-image" alt="{{ book.title }}">
+                                    {% else %}
+                                        <img src="https://via.placeholder.com/300x400.png?text=Không+có+hình" class="book-image" alt="Không có hình">
+                                    {% endif %}
+                                </a>
+                                <div class="book-overlay">
+                                    <a href="{% url 'book_detail' book.id %}" class="view-details-btn">
+                                        <i class="fas fa-eye"></i> Xem chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="book-info">
+                                <h3 class="book-title">
+                                    <a href="{% url 'book_detail' book.id %}">{{ book.title }}</a>
+                                </h3>
+                                
+                                <div class="book-meta">
+                                    <div class="rating-container">
+                                        <div class="stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= book.rating %}
+                                                    <i class="fas fa-star star-filled"></i>
+                                                {% else %}
+                                                    <i class="far fa-star star-empty"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <span class="rating-text">{{ book.rating }}/5</span>
+                                        <span class="badge bg-secondary ms-2">{{ book.reviews.count }} đánh giá</span>
+                                    </div>
+                                    
+                                    <p class="book-author">
+                                        <i class="fas fa-user"></i> {{ book.author.name }}
+                                    </p>
+                                    
+                                    {% if book.genre %}
+                                        <p class="book-genre">
+                                            <i class="fas fa-tag"></i> 
+                                            <a href="{% url 'genre_detail' book.genre.id %}">{{ book.genre.name }}</a>
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if user.is_authenticated %}
+                                    <div class="book-actions">
+                                        {% if book.is_in_want_to_read %}
+                                            <form method="post" action="{% url 'remove_from_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="action-btn remove-btn">
+                                                    <i class="fas fa-heart"></i> Bỏ khỏi danh sách
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form method="post" action="{% url 'add_to_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="action-btn add-btn">
+                                                    <i class="far fa-heart"></i> Muốn đọc
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="book-actions">
+                                        <a href="{% url 'login' %}" class="action-btn login-btn">
+                                            <i class="far fa-heart"></i> Đăng nhập để lưu
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3>Không tìm thấy sách nào</h3>
+                        <p>Hãy thử thay đổi tiêu chí tìm kiếm hoặc duyệt bộ sưu tập của chúng tôi</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Featured Authors Section -->
+{% if not query and featured_authors %}
+<div class="featured-authors-section mt-5">
+      <h2 class="mb-4 text-center" style="font-weight:bold; letter-spacing:1px;">Tác giả nổi bật</h2>
+      <div class="row justify-content-center">
+        {% for author in featured_authors %}
+          <div class="col-6 col-md-4 col-lg-3 mb-4">
+            <a href="{% url 'author_detail' author.id %}" class="featured-author-card shadow-3d featured-author-link" style="text-decoration:none; color:inherit;">
+              <div class="author-img-wrap">
+                <img src="{{ author.image.url }}" class="featured-author-img" alt="{{ author.name }}">
+              </div>
+              <div class="featured-author-info text-center">
+                <h5 class="mt-2 mb-1">{{ author.name }}</h5>
+                {% if author.birth_year %}<div class="text-muted small">Năm sinh: {{ author.birth_year }}</div>{% endif %}
+                {% if author.home_town %}<div class="text-muted small">Quê: {{ author.home_town }}</div>{% endif %}
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <style>
+    .featured-authors-section h2 {
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .featured-author-card {
+      min-height: 260px;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 8px 32px 0 rgba(80,80,180,0.13), 0 1.5px 6px 0 rgba(80,80,180,0.10);
+      transition: transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s;
+      transform-style: preserve-3d;
+      perspective: 600px;
+      padding: 32px 18px 18px 18px;
+      position: relative;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      border: 1.5px solid #f2f2f2;
+    }
+    .shadow-3d:hover, .featured-author-card:hover {
+      transform: translateY(-10px) scale(1.05) rotateY(6deg) rotateX(2deg);
+      box-shadow: 0 20px 48px 0 rgba(80,80,180,0.18), 0 3px 12px 0 rgba(80,80,180,0.13);
+      z-index: 2;
+      border-color: #a18cd1;
+    }
+    .author-img-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%);
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+      box-shadow: 0 2px 12px rgba(160,140,210,0.18);
+      overflow: hidden;
+      border: 3px solid #fff;
+      position: relative;
+      top: -36px;
+    }
+    .featured-author-img {
+      width: 94px;
+      height: 94px;
+      object-fit: cover;
+      border-radius: 50%;
+      filter: drop-shadow(0 2px 8px rgba(80,80,180,0.10));
+      transition: filter 0.2s;
+    }
+    .featured-author-card:hover .featured-author-img {
+      filter: drop-shadow(0 8px 24px rgba(80,80,180,0.18));
+    }
+    .featured-author-info {
+      margin-top: -12px;
+      text-align: center;
+    }
+    .featured-author-info h5 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .featured-author-info .text-muted {
+      font-size: 1rem;
+    }
+    .featured-author-link:hover {
+      text-decoration: none;
+      color: inherit;
+    }
+    </style>
+{% endif %}
+
+<!-- Featured Genres Section -->
+{% if not query and featured_genres %}
+<div class="featured-section genres-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Thể loại phổ biến</h2>
+            <p class="section-subtitle">Tìm kiếm sách theo thể loại yêu thích</p>
         </div>
-    </footer>
+        
+        <div class="genres-grid">
+            {% for genre in featured_genres %}
+                <div class="genre-item">
+                    <div class="genre-card">
+                        <div class="genre-icon">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div class="genre-info">
+                            <h3 class="genre-name">
+                                <a href="{% url 'genre_detail' genre.id %}">{{ genre.name }}</a>
+                            </h3>
+                            <span class="genre-count">
+                                {{ genre.book_count }} sách
+                            </span>
+                        </div>
+                        <a href="{% url 'genre_detail' genre.id %}" class="genre-link">
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <h3>Không tìm thấy thể loại nào</h3>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="section-footer">
+            <a href="{% url 'genres' %}" class="view-all-btn">
+                Xem tất cả thể loại <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<!-- Toast Notification -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="wantToReadToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-heart text-primary me-2"></i>
+            <strong class="me-auto">Muốn đọc</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Đóng"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            <!-- Message will be inserted here -->
+        </div>
+    </div>
+</div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // AJAX cho nút Muốn đọc
+        const wantToReadForms = document.querySelectorAll('.want-to-read-form');
+        const toast = new bootstrap.Toast(document.getElementById('wantToReadToast'));
+        const toastMessage = document.getElementById('toastMessage');
+        wantToReadForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                const bookId = this.dataset.bookId;
+                const isRemove = this.action.includes('remove');
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const button = this.querySelector('button');
+                        if (isRemove) {
+                            this.action = this.action.replace('remove-from-want-to-read', 'add-to-want-to-read');
+                            button.className = 'action-btn add-btn';
+                            button.innerHTML = '<i class="far fa-heart"></i> Muốn đọc';
+                        } else {
+                            this.action = this.action.replace('add-to-want-to-read', 'remove-from-want-to-read');
+                            button.className = 'action-btn remove-btn';
+                            button.innerHTML = '<i class="fas fa-heart"></i> Bỏ khỏi danh sách';
+                        }
+                        toastMessage.textContent = data.message;
+                        toast.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastMessage.textContent = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+                    toast.show();
+                });
+            });
+        });
+
+        // AJAX cho form bình luận/reply
+        document.querySelectorAll('.review-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.html) {
+                        // Chèn bình luận mới vào danh sách
+                        const reviewList = document.getElementById('review-list');
+                        if (reviewList) {
+                            reviewList.insertAdjacentHTML('afterbegin', data.html);
+                        }
+                        this.reset();
+                    } else {
+                        alert(data.message || 'Đã xảy ra lỗi.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi. Vui lòng thử lại.');
+                });
+            });
+        });
+    });
+    </script>
+{% endblock %}
+startCommand: gunicorn bookrating_project.wsgi:application
