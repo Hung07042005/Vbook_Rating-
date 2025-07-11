@@ -17,9 +17,13 @@ class Genre(models.Model):
 class Author(models.Model):
     name = models.CharField(max_length=100, unique=True)
     image = models.ImageField(upload_to='author_images/', null=True, blank=True)
-    bio = models.TextField(blank=True, help_text="Tiểu sử tác giả")
+    bio = models.TextField(blank=True, help_text="Tiểu sử ngắn")
+    tieu_su = models.TextField(blank=True, help_text="Tiểu sử chi tiết")
     birth_date = models.DateField(null=True, blank=True)
+    birth_year = models.PositiveIntegerField(null=True, blank=True, verbose_name='Năm sinh')
     nationality = models.CharField(max_length=100, blank=True)
+    home_town = models.CharField(max_length=255, null=True, blank=True, verbose_name='Quê quán')
+    info = models.TextField(blank=True, help_text="Thông tin chi tiết về tác giả")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

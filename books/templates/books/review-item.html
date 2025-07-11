@@ -1,0 +1,9 @@
+"D:/Lập trình web/.venv/Scripts/python.exe" manage.py runserver
+<div class="review-item">
+    <div class="review-header">
+        <strong>{{ review.user.username }}</strong>
+        <span class="text-muted">{{ review.created_at|date:'d/m/Y H:i' }}</span>
+    </div>
+    <div class="review-content">{{ review.content }}</div>
+    <!-- Nếu có reply, render reply ở đây -->
+</div>

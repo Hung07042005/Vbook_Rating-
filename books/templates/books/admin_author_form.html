@@ -1,0 +1,10 @@
+{% extends 'books/base.html' %}
+{% block content %}
+<h2>{% if action == 'add' %}Thêm tác giả mới{% else %}Sửa thông tin tác giả{% endif %}</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Lưu</button>
+    <a href="{% url 'admin_author_list' %}" class="btn btn-secondary">Quay lại</a>
+</form>
+{% endblock %}

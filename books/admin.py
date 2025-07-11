@@ -10,16 +10,16 @@ class GenreAdmin(admin.ModelAdmin):
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ['name', 'nationality', 'birth_date', 'created_at']
-    search_fields = ['name', 'nationality', 'bio']
+    list_display = ['name', 'birth_year', 'home_town', 'nationality', 'birth_date', 'created_at']
+    search_fields = ['name', 'nationality', 'bio', 'home_town']
     ordering = ['name']
-    list_filter = ['nationality', 'birth_date', 'created_at']
+    list_filter = ['nationality', 'birth_year', 'home_town', 'birth_date', 'created_at']
     fieldsets = (
         ('Thông tin cơ bản', {
-            'fields': ('name', 'image', 'nationality', 'birth_date')
+            'fields': ('name', 'image', 'nationality', 'birth_date', 'birth_year', 'home_town')
         }),
         ('Tiểu sử', {
-            'fields': ('bio',),
+            'fields': ('bio', 'tieu_su', 'info'),
             'classes': ('collapse',)
         }),
     )

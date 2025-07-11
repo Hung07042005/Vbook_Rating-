@@ -1,0 +1,10 @@
+{% extends 'books/base.html' %}
+{% block content %}
+<h2>Xác nhận xóa tác giả</h2>
+<p>Bạn có chắc chắn muốn xóa tác giả <strong>{{ author.name }}</strong>?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a href="{% url 'admin_author_list' %}" class="btn btn-secondary">Hủy</a>
+</form>
+{% endblock %}

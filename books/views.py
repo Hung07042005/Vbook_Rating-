@@ -5,7 +5,7 @@ from django.db.models import Q, Count, Avg, F
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from datetime import datetime, timedelta
 from django.views.decorators.http import require_POST
 from .models import Review, ReviewLike
@@ -19,6 +19,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core import serializers
 import unicodedata
 import re
+from django.contrib.admin.views.decorators import staff_member_required
+from django import forms
 
 def index(request):
     books = Book.objects.all().order_by('-created_at')
@@ -154,7 +156,11 @@ def edit_book(request, book_id):
 def author_detail(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     books = author.books.all()
-    
+    # Lấy danh sách thể loại duy nhất
+    genres = Genre.objects.filter(books__author=author).distinct()
+    # Tính điểm trung bình các sách của tác giả (chỉ tính sách có review)
+    ratings = [book.rating for book in books if book.reviews.count() > 0]
+    avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else None
     # Kiểm tra want to read cho mỗi sách
     if request.user.is_authenticated:
         want_to_read_books = WantToRead.objects.filter(user=request.user).values_list('book_id', flat=True)
@@ -163,8 +169,7 @@ def author_detail(request, author_id):
     else:
         for book in books:
             book.is_in_want_to_read = False
-    
-    return render(request, 'books/author_detail.html', {'author': author, 'books': books})
+    return render(request, 'books/author_detail.html', {'author': author, 'books': books, 'genres': genres, 'avg_rating': avg_rating})
 
 def register(request):
     if request.method == 'POST':
@@ -490,3 +495,47 @@ def search_statistics(request):
         'top_books': top_books,
         'top_genres': top_genres,
     })
+
+class AuthorForm(forms.ModelForm):
+    class Meta:
+        model = Author
+        fields = ['name', 'bio', 'nationality', 'info', 'tieu_su', 'image', 'birth_year', 'home_town']
+
+@staff_member_required
+def admin_author_list(request):
+    authors = Author.objects.all().order_by('-id')
+    return render(request, 'books/admin_author_list.html', {'authors': authors})
+
+@staff_member_required
+def admin_author_add(request):
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tác giả đã được thêm thành công!')
+            return redirect('admin_author_list')
+    else:
+        form = AuthorForm()
+    return render(request, 'books/admin_author_form.html', {'form': form, 'action': 'add'})
+
+@staff_member_required
+def admin_author_edit(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, request.FILES, instance=author)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tác giả đã được cập nhật!')
+            return redirect('admin_author_list')
+    else:
+        form = AuthorForm(instance=author)
+    return render(request, 'books/admin_author_form.html', {'form': form, 'action': 'edit', 'author': author})
+
+@staff_member_required
+def admin_author_delete(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    if request.method == 'POST':
+        author.delete()
+        messages.success(request, 'Tác giả đã được xóa!')
+        return redirect('admin_author_list')
+    return render(request, 'books/admin_author_confirm_delete.html', {'author': author})

@@ -3,208 +3,126 @@
 {% block title %}{{ author.name }} - Tác giả{% endblock %}
 
 {% block content %}
-<!-- Author Hero Section -->
-<div class="author-hero">
-    <div class="container">
-        <div class="author-profile">
-            <div class="author-avatar-large">
-                {% if author.image %}
-                    <img src="{{ author.image.url }}" alt="{{ author.name }}" class="author-image-large">
-                {% else %}
-                    <i class="fas fa-user-circle"></i>
-                {% endif %}
-            </div>
-            <div class="author-details">
-                <h1 class="author-name-large">{{ author.name }}</h1>
-                {% if author.nationality %}
-                    <p class="author-nationality">
-                        <i class="fas fa-globe"></i> {{ author.nationality }}
-                    </p>
-                {% endif %}
-                {% if author.birth_date %}
-                    <p class="author-birth">
-                        <i class="fas fa-birthday-cake"></i> {{ author.birth_date|date:"d/m/Y" }}
-                    </p>
-                {% endif %}
-                {% if author.bio %}
-                    <p class="author-bio">{{ author.bio|truncatewords:50 }}</p>
-                {% endif %}
-            </div>
+<div class="container author-profile">
+  <div class="row">
+    <div class="col-md-3 text-center">
+      <img src="{{ author.image.url }}" class="author-avatar mb-3" alt="{{ author.name }}">
+      <!-- Followers section placeholder -->
+      <div class="author-followers mt-4">
+        <b>Followers ({{ author.followers_count|default:0 }})</b>
+        <div class="followers-list">
+          {% for follower in author.followers.all|slice:":18" %}
+            <img src="{{ follower.profile_image.url|default:'/static/images/default_avatar.png' }}" class="follower-avatar" alt="Follower">
+          {% endfor %}
         </div>
+      </div>
     </div>
-</div>
-
-<!-- Books Section -->
-<div class="books-section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Sách của {{ author.name }}</h2>
-            <p class="section-subtitle">{{ books.count }} cuốn sách được xuất bản</p>
-        </div>
-        
-        {% if books %}
-            <div class="books-grid">
-                {% for book in books %}
-                    <div class="book-item">
-                        <div class="book-card">
-                            <div class="book-image-container">
-                                <a href="{% url 'book_detail' book.id %}">
-                                    {% if book.image %}
-                                        <img src="{{ book.image.url }}" class="book-image" alt="{{ book.title }}">
-                                    {% else %}
-                                        <img src="https://via.placeholder.com/300x400.png?text=No+Image" class="book-image" alt="No Image">
-                                    {% endif %}
-                                </a>
-                                <div class="book-overlay">
-                                    <a href="{% url 'book_detail' book.id %}" class="view-details-btn">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <div class="book-info">
-                                <h3 class="book-title">
-                                    <a href="{% url 'book_detail' book.id %}">{{ book.title }}</a>
-                                </h3>
-                                
-                                <div class="book-meta">
-                                    <div class="rating-container">
-                                        <div class="stars">
-                                            {% for i in "12345" %}
-                                                {% if forloop.counter <= book.rating %}
-                                                    <i class="fas fa-star star-filled"></i>
-                                                {% else %}
-                                                    <i class="far fa-star star-empty"></i>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </div>
-                                        <span class="rating-text">{{ book.rating }}/5</span>
-                                    </div>
-                                    
-                                    {% if book.genre %}
-                                        <p class="book-genre">
-                                            <i class="fas fa-tag"></i> 
-                                            <a href="{% url 'genre_detail' book.genre.id %}">{{ book.genre.name }}</a>
-                                        </p>
-                                    {% endif %}
-                                </div>
-                                
-                                {% if user.is_authenticated %}
-                                    <div class="book-actions">
-                                        {% if book.is_in_want_to_read %}
-                                            <form method="post" action="{% url 'remove_from_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="action-btn remove-btn">
-                                                    <i class="fas fa-heart"></i> Remove
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <form method="post" action="{% url 'add_to_want_to_read' book.id %}" class="want-to-read-form" data-book-id="{{ book.id }}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="action-btn add-btn">
-                                                    <i class="far fa-heart"></i> Want to Read
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    </div>
-                                {% else %}
-                                    <div class="book-actions">
-                                        <a href="{% url 'login' %}" class="action-btn login-btn">
-                                            <i class="far fa-heart"></i> Login to Save
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-book-open"></i>
-                </div>
-                <h3>Chưa có sách nào</h3>
-                <p>Tác giả này chưa có sách nào trong hệ thống</p>
-            </div>
+    <div class="col-md-9">
+      <h1 class="author-name">{{ author.name }}</h1>
+      <div class="author-info-details mb-2">
+        <span><b>Năm sinh:</b> {{ author.birth_year|default:"Chưa cập nhật" }}</span>
+        <span class="ms-3"><b>Quê quán:</b> {{ author.home_town|default:"Chưa cập nhật" }}</span>
+      </div>
+      <div class="author-tieu-su mb-3">
+        {% if author.tieu_su %}
+          <span id="tieu-su-short">
+            {{ author.tieu_su|truncatechars:300 }}
+            {% if author.tieu_su|length > 300 %}
+              ... <a href="#" id="show-tieu-su">Xem thêm</a>
+            {% endif %}
+          </span>
+          <span id="tieu-su-full" style="display:none;">
+            {{ author.tieu_su|linebreaks }} <a href="#" id="hide-tieu-su">Thu gọn</a>
+          </span>
         {% endif %}
-        
-        <div class="section-footer">
-            <a href="{% url 'index' %}" class="view-all-btn">
-                <i class="fas fa-arrow-left"></i> Về trang chủ
-            </a>
+      </div>
+      <div class="author-books-section mt-4">
+        <h3>SÁCH CỦA {{ author.name|upper }}</h3>
+        <div class="author-rating mb-2">
+          Đánh giá trung bình: {% if books %}{{ books|length }} cuốn, {% endif %}{% if avg_rating %}{{ avg_rating|floatformat:1 }} ★{% else %}Chưa có đánh giá{% endif %}
         </div>
+        <div class="row">
+          {% for book in books %}
+            <div class="col-md-6 mb-3">
+              <div class="card book-card">
+                <div class="row g-0">
+                  <div class="col-4">
+                    <img src="{{ book.image.url }}" class="img-fluid rounded-start" alt="{{ book.title }}">
+                  </div>
+                  <div class="col-8">
+                    <div class="card-body">
+                      <h5 class="card-title">{{ book.title }}</h5>
+                      <div class="book-rating mb-1">
+                        <span class="stars">&#9733; {{ book.rating|default:"Chưa có" }}</span>
+                        <span class="text-muted small">{{ book.reviews.count }} đánh giá</span>
+                      </div>
+                      <div class="book-pub">
+                        {% if book.publish_year %}Năm xuất bản: {{ book.publish_year }}{% endif %}
+                      </div>
+                      <a href="{% url 'book_detail' book.id %}" class="btn btn-outline-primary btn-sm mt-2">Xem chi tiết</a>
+                      {% if book.is_in_want_to_read %}
+                        <button class="btn btn-success btn-sm mt-2" disabled>Muốn đọc</button>
+                      {% else %}
+                        <form method="post" action="{% url 'add_to_want_to_read' book.id %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-success btn-sm mt-2">Muốn đọc</button></form>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-12">Chưa có sách nào.</div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="author-quotes mt-5">
+        <h4>TRÍCH DẪN CỦA {{ author.name|upper }}</h4>
+        <div class="quote-list">
+          {% for quote in author.quotes.all|slice:":2" %}
+            <blockquote class="blockquote">{{ quote.text|linebreaks }}<footer class="blockquote-footer">— {{ author.name }}, <cite>{{ quote.book_title }}</cite></footer></blockquote>
+          {% empty %}
+            <div>Chưa có trích dẫn nào.</div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- Toast Notification -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="wantToReadToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <i class="fas fa-heart text-primary me-2"></i>
-            <strong class="me-auto">Want to Read</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="toastMessage">
-            <!-- Message will be inserted here -->
-        </div>
-    </div>
-</div>
-
+<style>
+.author-profile { margin-top: 32px; }
+.author-avatar { width: 160px; height: 160px; border-radius: 8px; object-fit: cover; border: 3px solid #eee; }
+.author-name { font-size: 2.2rem; font-weight: bold; }
+.author-info-details { font-size: 1.1rem; }
+.author-tieu-su { font-size: 1.08rem; color: #333; }
+.author-books-section h3 { font-size: 1.3rem; margin-bottom: 12px; }
+.book-card { min-height: 140px; }
+.stars { color: #e67e22; font-weight: bold; }
+.follower-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin: 2px; border: 1px solid #ccc; }
+.author-followers { font-size: 0.98rem; }
+.author-followers b { display: block; margin-bottom: 4px; }
+.quote-list { margin-top: 12px; }
+.blockquote { background: #f8f8f8; border-left: 4px solid #a18cd1; padding: 12px 18px; margin-bottom: 16px; border-radius: 6px; }
+.blockquote-footer { font-size: 0.95em; color: #888; }
+</style>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const wantToReadForms = document.querySelectorAll('.want-to-read-form');
-        const toast = new bootstrap.Toast(document.getElementById('wantToReadToast'));
-        const toastMessage = document.getElementById('toastMessage');
-
-        wantToReadForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                const bookId = this.dataset.bookId;
-                const isRemove = this.action.includes('remove');
-                
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update button
-                        const button = this.querySelector('button');
-                        const bookActions = this.closest('.book-actions');
-                        
-                        if (isRemove) {
-                            // Change to "Want to Read" button
-                            this.action = this.action.replace('remove-from-want-to-read', 'add-to-want-to-read');
-                            button.className = 'action-btn add-btn';
-                            button.innerHTML = '<i class="far fa-heart"></i> Want to Read';
-                            this.dataset.bookId = bookId;
-                        } else {
-                            // Change to "Remove" button
-                            this.action = this.action.replace('add-to-want-to-read', 'remove-from-want-to-read');
-                            button.className = 'action-btn remove-btn';
-                            button.innerHTML = '<i class="fas fa-heart"></i> Remove';
-                            this.dataset.bookId = bookId;
-                        }
-                        
-                        // Show toast message
-                        toastMessage.textContent = data.message;
-                        toast.show();
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastMessage.textContent = 'An error occurred. Please try again.';
-                    toast.show();
-                });
-            });
-        });
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    var showBtn = document.getElementById('show-tieu-su');
+    var hideBtn = document.getElementById('hide-tieu-su');
+    var shortDiv = document.getElementById('tieu-su-short');
+    var fullDiv = document.getElementById('tieu-su-full');
+    if (showBtn && hideBtn && shortDiv && fullDiv) {
+        showBtn.onclick = function(e) {
+            e.preventDefault();
+            shortDiv.style.display = 'none';
+            fullDiv.style.display = 'inline';
+        };
+        hideBtn.onclick = function(e) {
+            e.preventDefault();
+            fullDiv.style.display = 'none';
+            shortDiv.style.display = 'inline';
+        };
+    }
+});
 </script>
 {% endblock %}

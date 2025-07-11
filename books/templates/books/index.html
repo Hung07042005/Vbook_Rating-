@@ -304,54 +304,69 @@
 
 <!-- Featured Authors Section -->
 {% if not query and featured_authors %}
-<div class="featured-section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Tác giả nổi bật</h2>
-            <p class="section-subtitle">Khám phá những tác giả được yêu thích nhất</p>
-        </div>
-        
-        <div class="authors-grid">
-            {% for author in featured_authors %}
-                <div class="author-item">
-                    <div class="author-card">
-                        <div class="author-avatar">
-                            {% if author.image %}
-                                <img src="{{ author.image.url }}" alt="{{ author.name }}" class="author-image">
-                            {% else %}
-                                <i class="fas fa-user-circle"></i>
-                            {% endif %}
-                        </div>
-                        <div class="author-info">
-                            <h3 class="author-name">
-                                <a href="{% url 'author_detail' author.id %}">{{ author.name }}</a>
-                            </h3>
-                            <div class="author-stats">
-                                <span class="book-count">
-                                    <i class="fas fa-book"></i> {{ author.book_count }} sách
-                                </span>
-                                {% if author.avg_rating %}
-                                    <span class="avg-rating">
-                                        <i class="fas fa-star"></i> {{ author.avg_rating }}/5
-                                    </span>
-                                {% endif %}
-                            </div>
-                            <a href="{% url 'author_detail' author.id %}" class="view-author-btn">
-                                Xem tác giả
-                            </a>
-                        </div>
-                    </div>
+<div class="featured-authors-section mt-5">
+      <h2 class="mb-4">Tác giả nổi bật</h2>
+      <div class="row justify-content-center">
+        {% for author in featured_authors %}
+          <div class="col-6 col-md-4 col-lg-3 mb-4">
+            <div class="featured-author-card shadow-3d">
+              <div class="author-img-wrap">
+                <img src="{{ author.image.url }}" class="featured-author-img" alt="{{ author.name }}">
+              </div>
+              <div class="featured-author-info text-center">
+                <h5 class="mt-2 mb-1">{{ author.name }}</h5>
+                {% if author.birth_year %}<div class="text-muted small">Năm sinh: {{ author.birth_year }}</div>{% endif %}
+                {% if author.home_town %}<div class="text-muted small">Quê: {{ author.home_town }}</div>{% endif %}
+                <div class="mt-2">
+                  <a href="{% url 'author_detail' author.id %}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
                 </div>
-            {% endfor %}
-        </div>
-        
-        <div class="section-footer">
-            <a href="{% url 'author_list' %}" class="view-all-btn">
-                Xem tất cả tác giả <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
     </div>
-</div>
+    <style>
+    .featured-authors-section h2 { font-weight: bold; letter-spacing: 1px; }
+    .shadow-3d {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 24px 0 rgba(80,80,180,0.13), 0 1.5px 6px 0 rgba(80,80,180,0.10);
+      transition: transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s;
+      transform-style: preserve-3d;
+      perspective: 600px;
+      padding: 18px 12px 12px 12px;
+      position: relative;
+      overflow: visible;
+    }
+    .shadow-3d:hover {
+      transform: translateY(-8px) scale(1.04) rotateY(6deg) rotateX(2deg);
+      box-shadow: 0 16px 40px 0 rgba(80,80,180,0.18), 0 3px 12px 0 rgba(80,80,180,0.13);
+      z-index: 2;
+    }
+    .author-img-wrap {
+      display: flex; justify-content: center; align-items: center;
+      background: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%);
+      border-radius: 50%;
+      width: 90px; height: 90px;
+      margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(160,140,210,0.18);
+      overflow: hidden;
+      border: 3px solid #fff;
+      position: relative;
+      top: -30px;
+    }
+    .featured-author-img {
+      width: 84px; height: 84px; object-fit: cover; border-radius: 50%;
+      filter: drop-shadow(0 2px 8px rgba(80,80,180,0.10));
+      transition: filter 0.2s;
+    }
+    .shadow-3d:hover .featured-author-img {
+      filter: drop-shadow(0 6px 18px rgba(80,80,180,0.18));
+    }
+    .featured-author-info { margin-top: -18px; }
+    .featured-author-card { min-height: 220px; }
+    </style>
 {% endif %}
 
 <!-- Featured Genres Section -->
@@ -416,20 +431,18 @@
     </div>
 </div>
 
-<script>
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // AJAX cho nút Muốn đọc
         const wantToReadForms = document.querySelectorAll('.want-to-read-form');
         const toast = new bootstrap.Toast(document.getElementById('wantToReadToast'));
         const toastMessage = document.getElementById('toastMessage');
-
         wantToReadForms.forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
                 const formData = new FormData(this);
                 const bookId = this.dataset.bookId;
                 const isRemove = this.action.includes('remove');
-                
                 fetch(this.action, {
                     method: 'POST',
                     body: formData,
@@ -440,25 +453,16 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Update button
                         const button = this.querySelector('button');
-                        const bookActions = this.closest('.book-actions');
-                        
                         if (isRemove) {
-                            // Change to "Want to Read" button
                             this.action = this.action.replace('remove-from-want-to-read', 'add-to-want-to-read');
                             button.className = 'action-btn add-btn';
                             button.innerHTML = '<i class="far fa-heart"></i> Muốn đọc';
-                            this.dataset.bookId = bookId;
                         } else {
-                            // Change to "Remove" button
                             this.action = this.action.replace('add-to-want-to-read', 'remove-from-want-to-read');
                             button.className = 'action-btn remove-btn';
                             button.innerHTML = '<i class="fas fa-heart"></i> Bỏ khỏi danh sách';
-                            this.dataset.bookId = bookId;
                         }
-                        
-                        // Show toast message
                         toastMessage.textContent = data.message;
                         toast.show();
                     }
@@ -470,6 +474,38 @@
                 });
             });
         });
+
+        // AJAX cho form bình luận/reply
+        document.querySelectorAll('.review-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.html) {
+                        // Chèn bình luận mới vào danh sách
+                        const reviewList = document.getElementById('review-list');
+                        if (reviewList) {
+                            reviewList.insertAdjacentHTML('afterbegin', data.html);
+                        }
+                        this.reset();
+                    } else {
+                        alert(data.message || 'Đã xảy ra lỗi.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi. Vui lòng thử lại.');
+                });
+            });
+        });
     });
-</script>
+    </script>
 {% endblock %}

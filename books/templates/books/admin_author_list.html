@@ -1,0 +1,30 @@
+{% extends 'books/base.html' %}
+{% block content %}
+<h2>Quản lý tác giả</h2>
+<a href="{% url 'admin_author_add' %}" class="btn btn-success">Thêm tác giả mới</a>
+<table class="table table-bordered mt-3">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên</th>
+            <th>Quốc tịch</th>
+            <th>Tiêu sử</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for author in authors %}
+        <tr>
+            <td>{{ author.id }}</td>
+            <td>{{ author.name }}</td>
+            <td>{{ author.nationality }}</td>
+            <td>{{ author.tieu_su|default_if_none:""|truncatewords:20 }}</td>
+            <td>
+                <a href="{% url 'admin_author_edit' author.id %}" class="btn btn-primary btn-sm">Sửa</a>
+                <a href="{% url 'admin_author_delete' author.id %}" class="btn btn-danger btn-sm">Xóa</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
