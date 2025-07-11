@@ -27,6 +27,13 @@
               >{{ book.author.name }}</a
             >
           </h5>
+          {% if book.pdf_file %}
+  <div class="mt-4">
+    <h5>Đọc trực tuyến:</h5>
+    <iframe src="{{ book.pdf_file.url }}" width="100%" height="600px" frameborder="0"></iframe>
+  </div>
+{% endif %}
+
 
           {% if book.published_date %}
           <p>
