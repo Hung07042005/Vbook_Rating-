@@ -26,7 +26,7 @@
                                             <i class="fas fa-book"></i> {{ genre.book_count }} sách
                                         </span>
                                     </div>
-                                    <a href="{% url 'genre_detail' genre.id %}" class="btn btn-outline-{{ genre.color }}">
+                                    <a href="{% url 'genre_detail' genre.id %}">
                                         <i class="fas fa-eye"></i> Xem sách
                                     </a>
                                 </div>
@@ -79,4 +79,4 @@
     border: 2px dashed #dee2e6;
 }
 </style>
-{% endblock %} 
+{% endblock %}

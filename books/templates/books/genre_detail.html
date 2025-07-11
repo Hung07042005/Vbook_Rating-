@@ -19,67 +19,39 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Books in this genre -->
-            {% if books %}
-                <h2 class="mb-4">Sách trong thể loại {{ genre.name }}</h2>
-                <div class="row">
+            <div class="row">
+                {% if books %}
                     {% for book in books %}
                         <div class="col-md-3 col-lg-2 mb-4">
-                            <div class="book-card card h-100">
-                                <a href="{% url 'book_detail' book.id %}">
-                                    {% if book.image and book.image.url %}
-                                        <img src="{{ book.image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 280px; object-fit: cover;">
-                                    {% else %}
-                                        <img src="https://via.placeholder.com/200x280.png?text=No+Image" class="card-img-top" alt="No Image" style="height: 280px; object-fit: cover;">
-                                    {% endif %}
-                                </a>
+                            <div class="book-card card h-100 book-card-hover">
+                                {% if book.image and book.image.url %}
+                                    <img src="{{ book.image.url }}" class="card-img-top" alt="{{ book.title }}" style="height: 280px; object-fit: cover;">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/200x280.png?text=No+Image" class="card-img-top" alt="No Image" style="height: 280px; object-fit: cover;">
+                                {% endif %}
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title">{{ book.title }}</h5>
                                     <p class="card-text flex-grow-1">{{ book.content|truncatewords:30 }}</p>
                                     <p class="rating mb-2">Rating: {{ book.rating }}/5 <i class="fas fa-star text-warning"></i></p>
                                     <p class="text-muted small mb-2">By: {{ book.author.name }}</p>
-                                    
-                                    {% if user.is_authenticated %}
-                                        <div class="want-to-read-section">
-                                            {% if book.is_in_want_to_read %}
-                                                <form method="post" action="{% url 'remove_from_want_to_read' book.id %}" class="d-inline want-to-read-form" data-book-id="{{ book.id }}">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                                        <i class="fas fa-heart"></i> Remove from Want to Read
-                                                    </button>
-                                                </form>
-                                            {% else %}
-                                                <form method="post" action="{% url 'add_to_want_to_read' book.id %}" class="d-inline want-to-read-form" data-book-id="{{ book.id }}">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="btn btn-outline-primary btn-sm">
-                                                        <i class="far fa-heart"></i> Want to Read
-                                                    </button>
-                                                </form>
-                                            {% endif %}
-                                        </div>
-                                    {% else %}
-                                        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-sm">
-                                            <i class="far fa-heart"></i> Want to Read (Login Required)
-                                        </a>
-                                    {% endif %}
+                                    <a href="{% url 'book_detail' book.id %}" class="btn btn-outline-primary mt-2">Xem chi tiết</a>
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center">
-                    <div class="empty-state">
-                        <i class="{{ genre.icon }} fa-4x text-{{ genre.color }} mb-3"></i>
-                        <h3 class="text-muted">Chưa có sách nào trong thể loại {{ genre.name }}</h3>
-                        <p class="text-muted">Hãy thêm sách vào thể loại này!</p>
-                        <a href="{% url 'genres' %}" class="btn btn-outline-{{ genre.color }}">
-                            <i class="fas fa-arrow-left"></i> Quay lại danh sách thể loại
-                        </a>
+                {% else %}
+                    <div class="text-center">
+                        <div class="empty-state">
+                            <i class="{{ genre.icon }} fa-4x text-{{ genre.color }} mb-3"></i>
+                            <h3 class="text-muted">Chưa có sách nào trong thể loại {{ genre.name }}</h3>
+                            <p class="text-muted">Hãy thêm sách vào thể loại này!</p>
+                            <a href="{% url 'genres' %}" class="btn btn-outline-{{ genre.color }}">
+                                <i class="fas fa-arrow-left"></i> Quay lại danh sách thể loại
+                            </a>
+                        </div>
                     </div>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

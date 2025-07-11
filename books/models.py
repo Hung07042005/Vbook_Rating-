@@ -42,6 +42,7 @@ class Book(models.Model):
     external_url = models.URLField(max_length=500, blank=True, null=True, help_text="Link đọc truyện online")
     reference_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Giá tham khảo (VNĐ)")
     publish_year = models.PositiveIntegerField(null=True, blank=True, help_text="Năm xuất bản")
+    pdf_file = models.FileField(upload_to='pdfs/', null=True, blank=True)
 
 
     def update_rating(self):

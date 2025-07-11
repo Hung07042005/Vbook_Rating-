@@ -88,41 +88,41 @@
             </div>
 
             <!-- Statistics Section -->
-            <div class="row mb-5">
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <h3 class="text-center mb-4">Thống kê cộng đồng</h3>
-                            <div class="row text-center">
-                                <div class="col-md-3 mb-3">
-                                    <div class="stat-item">
-                                        <h2 class="text-primary">1000+</h2>
-                                        <p class="text-muted">Cuốn sách</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <div class="stat-item">
-                                        <h2 class="text-success">500+</h2>
-                                        <p class="text-muted">Tác giả</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <div class="stat-item">
-                                        <h2 class="text-warning">2000+</h2>
-                                        <p class="text-muted">Đánh giá</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <div class="stat-item">
-                                        <h2 class="text-info">5000+</h2>
-                                        <p class="text-muted">Thành viên</p>
-                                    </div>
-                                </div>
-                            </div>
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4">Thống kê cộng đồng</h3>
+                <div class="row justify-content-center text-center">
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-item stat-item-fancy">
+                            <h2 class="stat-number text-primary">1000+</h2>
+                            <p class="text-muted">Cuốn sách</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-item stat-item-fancy">
+                            <h2 class="stat-number text-success">500+</h2>
+                            <p class="text-muted">Tác giả</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-item stat-item-fancy">
+                            <h2 class="stat-number text-warning">2000+</h2>
+                            <p class="text-muted">Đánh giá</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="stat-item stat-item-fancy">
+                            <h2 class="stat-number text-info">5000+</h2>
+                            <p class="text-muted">Thành viên</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
             <!-- Team Section -->
             <div class="row mb-5">
@@ -221,6 +221,29 @@
 .stat-item h2 {
     font-weight: bold;
     margin-bottom: 0.5rem;
+}
+.stat-item-fancy {
+    background: #f8fafd;
+    border-radius: 18px;
+    box-shadow: 0 2px 12px rgba(80,80,180,0.07);
+    padding: 1.5rem 0.5rem 1rem 0.5rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.stat-item-fancy:hover {
+    box-shadow: 0 8px 32px 0 rgba(80,80,180,0.13), 0 1.5px 6px 0 rgba(80,80,180,0.10);
+    transform: translateY(-6px) scale(1.04);
+}
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
 }
 
 .social-links a {

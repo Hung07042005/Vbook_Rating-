@@ -150,6 +150,9 @@ def edit_book(request, book_id):
             book.image = request.FILES['image']
 
         book.save()
+        if 'pdf_file' in request.FILES:
+         book.pdf_file = request.FILES['pdf_file']
+         book.save()
         return redirect('book_detail', book_id=book.id)
     
     return render(request, 'books/book_detail.html', {'book': book, 'edit_mode': True})

@@ -305,11 +305,11 @@
 <!-- Featured Authors Section -->
 {% if not query and featured_authors %}
 <div class="featured-authors-section mt-5">
-      <h2 class="mb-4">Tác giả nổi bật</h2>
+      <h2 class="mb-4 text-center" style="font-weight:bold; letter-spacing:1px;">Tác giả nổi bật</h2>
       <div class="row justify-content-center">
         {% for author in featured_authors %}
           <div class="col-6 col-md-4 col-lg-3 mb-4">
-            <div class="featured-author-card shadow-3d">
+            <a href="{% url 'author_detail' author.id %}" class="featured-author-card shadow-3d featured-author-link" style="text-decoration:none; color:inherit;">
               <div class="author-img-wrap">
                 <img src="{{ author.image.url }}" class="featured-author-img" alt="{{ author.name }}">
               </div>
@@ -317,55 +317,84 @@
                 <h5 class="mt-2 mb-1">{{ author.name }}</h5>
                 {% if author.birth_year %}<div class="text-muted small">Năm sinh: {{ author.birth_year }}</div>{% endif %}
                 {% if author.home_town %}<div class="text-muted small">Quê: {{ author.home_town }}</div>{% endif %}
-                <div class="mt-2">
-                  <a href="{% url 'author_detail' author.id %}" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
-                </div>
               </div>
-            </div>
+            </a>
           </div>
         {% endfor %}
       </div>
     </div>
     <style>
-    .featured-authors-section h2 { font-weight: bold; letter-spacing: 1px; }
-    .shadow-3d {
+    .featured-authors-section h2 {
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .featured-author-card {
+      min-height: 260px;
       background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 8px 24px 0 rgba(80,80,180,0.13), 0 1.5px 6px 0 rgba(80,80,180,0.10);
+      border-radius: 22px;
+      box-shadow: 0 8px 32px 0 rgba(80,80,180,0.13), 0 1.5px 6px 0 rgba(80,80,180,0.10);
       transition: transform 0.25s cubic-bezier(.4,2,.6,1), box-shadow 0.25s;
       transform-style: preserve-3d;
       perspective: 600px;
-      padding: 18px 12px 12px 12px;
+      padding: 32px 18px 18px 18px;
       position: relative;
       overflow: visible;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      border: 1.5px solid #f2f2f2;
     }
-    .shadow-3d:hover {
-      transform: translateY(-8px) scale(1.04) rotateY(6deg) rotateX(2deg);
-      box-shadow: 0 16px 40px 0 rgba(80,80,180,0.18), 0 3px 12px 0 rgba(80,80,180,0.13);
+    .shadow-3d:hover, .featured-author-card:hover {
+      transform: translateY(-10px) scale(1.05) rotateY(6deg) rotateX(2deg);
+      box-shadow: 0 20px 48px 0 rgba(80,80,180,0.18), 0 3px 12px 0 rgba(80,80,180,0.13);
       z-index: 2;
+      border-color: #a18cd1;
     }
     .author-img-wrap {
-      display: flex; justify-content: center; align-items: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       background: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%);
       border-radius: 50%;
-      width: 90px; height: 90px;
+      width: 100px;
+      height: 100px;
       margin: 0 auto;
-      box-shadow: 0 2px 8px rgba(160,140,210,0.18);
+      box-shadow: 0 2px 12px rgba(160,140,210,0.18);
       overflow: hidden;
       border: 3px solid #fff;
       position: relative;
-      top: -30px;
+      top: -36px;
     }
     .featured-author-img {
-      width: 84px; height: 84px; object-fit: cover; border-radius: 50%;
+      width: 94px;
+      height: 94px;
+      object-fit: cover;
+      border-radius: 50%;
       filter: drop-shadow(0 2px 8px rgba(80,80,180,0.10));
       transition: filter 0.2s;
     }
-    .shadow-3d:hover .featured-author-img {
-      filter: drop-shadow(0 6px 18px rgba(80,80,180,0.18));
+    .featured-author-card:hover .featured-author-img {
+      filter: drop-shadow(0 8px 24px rgba(80,80,180,0.18));
     }
-    .featured-author-info { margin-top: -18px; }
-    .featured-author-card { min-height: 220px; }
+    .featured-author-info {
+      margin-top: -12px;
+      text-align: center;
+    }
+    .featured-author-info h5 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .featured-author-info .text-muted {
+      font-size: 1rem;
+    }
+    .featured-author-link:hover {
+      text-decoration: none;
+      color: inherit;
+    }
     </style>
 {% endif %}
 
