@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-g*+=o!ul=@^bq%&_2-)ags5na_8a=$$(ffpyi9azx0_jv!#ov!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['.render.com', 'localhost', '127.0.0.1', 'vbook-rating-1.onrender.com']
 
 
 # Application definition
@@ -119,6 +119,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 LOGIN_REDIRECT_URL = '/'  # Chuyển hướng về trang index sau khi đăng nhập
 LOGOUT_REDIRECT_URL = '/'  # Chuyển hướng về trang index sau khi đăng xuất
 

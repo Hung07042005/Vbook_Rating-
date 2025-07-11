@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: vbook-rating
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn bookrating_project.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: bookrating_project.settings
+    staticPublishPath: staticfiles
