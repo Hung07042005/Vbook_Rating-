@@ -2,9 +2,22 @@ services:
   - type: web
     name: vbook-rating
     env: python
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "chmod a+x build.sh && ./build.sh"
     startCommand: "gunicorn bookrating_project.wsgi:application"
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: bookrating_project.settings
-    staticPublishPath: staticfiles
+      - key: DEBUG
+        value: False
+      - key: SECRET_KEY
+        generateValue: true
+    buildFilter:
+      paths:
+        - requirements.txt
+        - build.sh
+        - manage.py
+        - bookrating_project/**
+        - books/**
+        - static/**
+        - templates/**
+        - media/**
