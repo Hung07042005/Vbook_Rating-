@@ -61,6 +61,16 @@
               <button type="submit" class="btn btn-outline-danger btn-sm">Thích ({{ review.like_count }})</button>
             </form>
             <a href="#reply-review-{{ review.id }}" class="btn btn-outline-secondary btn-sm ms-2" onclick="document.getElementById('reply-form-{{ review.id }}').style.display='block';return false;">Bình luận</a>
+            {% if review.user == user %}
+  <form method="post"
+        action="{% url 'delete_review' review.id %}"
+        style="display:inline;"
+        class="ms-2"
+        onsubmit="return confirm('Bạn có chắc muốn xoá bình luận này?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline-danger btn-sm">Xoá</button>
+  </form>
+  {% endif %}
           </div>
           <div id="reply-form-{{ review.id }}" style="display:none;" class="mt-2">
             <form method="post" action="{% url 'reply_review' review.id %}">
@@ -69,13 +79,27 @@
               <button type="submit" class="btn btn-primary btn-sm">Gửi bình luận</button>
               <button type="button" class="btn btn-link btn-sm" onclick="document.getElementById('reply-form-{{ review.id }}').style.display='none';return false;">Hủy</button>
             </form>
+          
           </div>
           {% for reply in review.replies.all %}
-            <div class="reply ms-4 mt-2 p-2 bg-light rounded">
-              <b>{% if reply.user %}{{ reply.user.username }}{% else %}Ẩn danh{% endif %}</b> <span class="text-muted small">{{ reply.created_at|date:"d/m/Y H:i" }}</span><br>
-              {{ reply.content|linebreaks }}
-            </div>
-          {% endfor %}
+  <div class="reply ms-4 mt-2 p-2 bg-light rounded">
+    <b>{% if reply.user %}{{ reply.user.username }}{% else %}Ẩn danh{% endif %}</b>
+    <span class="text-muted small">{{ reply.created_at|date:"d/m/Y H:i" }}</span><br>
+    {{ reply.content|linebreaks }}
+    
+    {% if reply.user == user %}
+    <form method="post"
+          action="{% url 'delete_reply' reply.id %}"
+          style="display:inline;"
+          class="mt-2"
+          onsubmit="return confirm('Bạn có chắc muốn xoá phản hồi này?');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-danger btn-sm">Xoá</button>
+    </form>
+    {% endif %}
+  </div>
+{% endfor %}
+
         </div>
       {% endfor %}
     {% else %}
